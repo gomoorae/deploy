@@ -1,8 +1,8 @@
 # Simple Game Showcase Site
 
-¼Ò°³ + °ÔÀÓ ½æ³×ÀÏ + Å¬¸¯ Áï½Ã ÇÃ·¹ÀÌ¸¸ ÀÖ´Â Á¤Àû À¥»çÀÌÆ®ÀÔ´Ï´Ù.
+ï¿½Ò°ï¿½ + ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ + Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¸ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ô´Ï´ï¿½.
 
-## ÇöÀç ±¸Á¶
+## ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 ```text
 index.html
 app.js
@@ -16,35 +16,35 @@ thumbs/
   brick_breaker.svg
 ```
 
-## ·ÎÄÃ¿¡¼­ ¹Ì¸®º¸±â
-¾Æ¹« Á¤Àû ¼­¹ö·Î ¿­¸é µË´Ï´Ù.
+## ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½
+ï¿½Æ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ï´ï¿½.
 
 ```bash
 python -m http.server 5500
 ```
-ºê¶ó¿ìÀú: `http://localhost:5500`
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: `http://localhost:5500`
 
-## GitHub Pages ¹èÆ÷
-1. ÀÌ Æú´õ¸¦ GitHub ÀúÀå¼Ò¿¡ push
-2. GitHub ÀúÀå¼Ò -> `Settings` -> `Pages`
-3. `Build and deployment`¿¡¼­ `Source: Deploy from a branch`
-4. `Branch: main` + `/ (root)` ¼±ÅÃ ÈÄ ÀúÀå
-5. 1~3ºÐ µÚ ¹èÆ÷ URL Á¢¼Ó
+## GitHub Pages ï¿½ï¿½ï¿½ï¿½
+1. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GitHub ï¿½ï¿½ï¿½ï¿½Ò¿ï¿½ push
+2. GitHub ï¿½ï¿½ï¿½ï¿½ï¿½ -> `Settings` -> `Pages`
+3. `Build and deployment`ï¿½ï¿½ï¿½ï¿½ `Source: Deploy from a branch`
+4. `Branch: main` + `/ (root)` ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+5. 1~3ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ URL ï¿½ï¿½ï¿½ï¿½
 
-¹èÆ÷ URL ¿¹½Ã:
-- »ç¿ëÀÚ »çÀÌÆ®: `https://<username>.github.io/`
-- ÇÁ·ÎÁ§Æ® »çÀÌÆ®: `https://<username>.github.io/<repo-name>/`
+ï¿½ï¿½ï¿½ï¿½ URL ï¿½ï¿½ï¿½ï¿½:
+- ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®: `https://<username>.github.io/`
+- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®: `https://<username>.github.io/<repo-name>/`
 
-## °ÔÀÓ Ãß°¡ ¹æ¹ý
-1. `games/»õ°ÔÀÓÆú´õ/index.html` Ãß°¡
-2. `thumbs/½æ³×ÀÏÆÄÀÏ` Ãß°¡
-3. `games.json`¿¡ Ç×¸ñ Ãß°¡
+## ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
+1. `games/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/index.html` ï¿½ß°ï¿½
+2. `thumbs/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½` ï¿½ß°ï¿½
+3. `games.json`ï¿½ï¿½ ï¿½×¸ï¿½ ï¿½ß°ï¿½
 
-`games.json` Ç×¸ñ ¿¹½Ã:
+`games.json` ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½:
 ```json
 {
   "title": "My New Game",
-  "description": "¼³¸í",
+  "description": "ï¿½ï¿½ï¿½ï¿½",
   "thumbnail": "thumbs/my_new_game.png",
   "url": "games/my_new_game/index.html"
 }

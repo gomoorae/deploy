@@ -1,13 +1,13 @@
 [
   {
     "title": "Tetris",
-    "description": "ºí·ÏÀ» ½×¾Æ ¶óÀÎÀ» Áö¿ì´Â Å¬·¡½Ä °ÔÀÓ",
+    "description": "ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
     "thumbnail": "thumbs/tetris.svg",
     "url": "games/tetris/index.html"
   },
   {
     "title": "Brick Breaker",
-    "description": "ÆÐµé·Î °øÀ» Æ¨°Ü º®µ¹À» ±ú´Â °ÔÀÓ",
+    "description": "ï¿½Ðµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ¨ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
     "thumbnail": "thumbs/brick_breaker.svg",
     "url": "games/brick_breaker/index.html"
   }

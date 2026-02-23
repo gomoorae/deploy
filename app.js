@@ -6,7 +6,7 @@ async function loadGames() {
     const games = await res.json();
 
     if (!Array.isArray(games) || games.length === 0) {
-      gameGrid.innerHTML = "<p>¾ÆÁ÷ µî·ÏµÈ °ÔÀÓÀÌ ¾ø½À´Ï´Ù.</p>";
+      gameGrid.innerHTML = "<p>ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.</p>";
       return;
     }
 
@@ -17,7 +17,7 @@ async function loadGames() {
       card.className = "card";
       card.href = game.url;
       card.innerHTML = `
-        <img class="thumb" src="${game.thumbnail}" alt="${game.title} ½æ³×ÀÏ" />
+        <img class="thumb" src="${game.thumbnail}" alt="${game.title} ï¿½ï¿½ï¿½ï¿½ï¿½" />
         <div class="meta">
           <h3>${game.title}</h3>
           <p>${game.description || ""}</p>
@@ -26,7 +26,7 @@ async function loadGames() {
       gameGrid.appendChild(card);
     }
   } catch (error) {
-    gameGrid.innerHTML = `<p>°ÔÀÓ ¸ñ·ÏÀ» ºÒ·¯¿ÀÁö ¸øÇß½À´Ï´Ù: ${error.message}</p>`;
+    gameGrid.innerHTML = `<p>ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½: ${error.message}</p>`;
   }
 }
 
