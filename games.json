@@ -12,8 +12,8 @@
     "url": "games/brick_breaker/index.html"
   },
   {
-    "title": "Racing Bike",
-    "description": "바이크로 도로를 달리는 레이싱 게임",
+    "title": "바이크 칼치기",
+    "description": "바이크로 칼치기하며 달리는 게임",
     "thumbnail": "thumbs/bike_game_v1.svg",
     "url": "games/bike_game/index.html"
   }
