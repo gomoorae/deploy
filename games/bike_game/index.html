@@ -223,25 +223,51 @@
             background: #45a049;
         }
 
-        .home-btn {
+        .game-top-ui {
             position: fixed;
-            top: 14px;
-            left: 14px;
-            z-index: 200;
-            padding: 10px 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            top: clamp(8px, calc((100dvh - min(100dvh, 800px)) / 2 - 66px), 40px);
+            z-index: 220;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .home-btn {
+            display: inline-block;
+            padding: 12px 22px;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            background: rgba(0, 0, 0, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            background: rgba(0, 0, 0, 0.66);
             color: #ffffff;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             line-height: 1;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(3px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
         }
 
         .home-btn:hover {
-            background: rgba(20, 20, 20, 0.8);
+            background: rgba(20, 20, 20, 0.86);
+        }
+
+        .control-hint {
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #f3f3f3;
+            background: rgba(0, 0, 0, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+        }
+
+        @supports not (height: 100dvh) {
+            .game-top-ui {
+                top: clamp(8px, calc((100vh - min(100vh, 800px)) / 2 - 66px), 40px);
+            }
         }
 
         @media (min-width: 768px) {
@@ -252,7 +278,10 @@
     </style>
 </head>
 <body>
-    <a class="home-btn" href="../../index.html">메인으로</a>
+    <div class="game-top-ui">
+        <a class="home-btn" href="../../index.html">메인으로</a>
+        <div class="control-hint">좌우 방향키 or A, D 키로 이동</div>
+    </div>
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
         <div class="game-info">
