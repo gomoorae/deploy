@@ -1,4 +1,4 @@
-const gameGrid = document.getElementById("gameGrid");
+﻿const gameGrid = document.getElementById("gameGrid");
 
 async function loadGames() {
   try {
@@ -6,7 +6,7 @@ async function loadGames() {
     const games = await res.json();
 
     if (!Array.isArray(games) || games.length === 0) {
-      gameGrid.innerHTML = "<p>���� ��ϵ� ������ �����ϴ�.</p>";
+      gameGrid.innerHTML = "<p>아직 등록된 게임이 없습니다.</p>";
       return;
     }
 
@@ -17,7 +17,7 @@ async function loadGames() {
       card.className = "card";
       card.href = game.url;
       card.innerHTML = `
-        <img class="thumb" src="${game.thumbnail}" alt="${game.title} �����" />
+        <img class="thumb" src="${game.thumbnail}" alt="${game.title} 썸네일" />
         <div class="meta">
           <h3>${game.title}</h3>
           <p>${game.description || ""}</p>
@@ -26,7 +26,7 @@ async function loadGames() {
       gameGrid.appendChild(card);
     }
   } catch (error) {
-    gameGrid.innerHTML = `<p>���� ����� �ҷ����� ���߽��ϴ�: ${error.message}</p>`;
+    gameGrid.innerHTML = `<p>게임 목록을 불러오지 못했습니다: ${error.message}</p>`;
   }
 }
 

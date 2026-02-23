@@ -1,13 +1,13 @@
-[
+﻿[
   {
     "title": "Tetris",
-    "description": "����� �׾� ������ ����� Ŭ���� ����",
+    "description": "블록을 쌓아 라인을 지우는 클래식 게임",
     "thumbnail": "thumbs/tetris.svg",
     "url": "games/tetris/index.html"
   },
   {
     "title": "Brick Breaker",
-    "description": "�е�� ���� ƨ�� ������ ���� ����",
+    "description": "패들로 공을 튕겨 벽돌을 깨는 게임",
     "thumbnail": "thumbs/brick_breaker.svg",
     "url": "games/brick_breaker/index.html"
   }
