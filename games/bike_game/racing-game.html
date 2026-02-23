@@ -223,6 +223,27 @@
             background: #45a049;
         }
 
+        .home-btn {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 200;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            background: rgba(0, 0, 0, 0.58);
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            backdrop-filter: blur(2px);
+        }
+
+        .home-btn:hover {
+            background: rgba(20, 20, 20, 0.8);
+        }
+
         @media (min-width: 768px) {
             .control-btn {
                 display: none;
@@ -231,6 +252,7 @@
     </style>
 </head>
 <body>
+    <a class="home-btn" href="../../index.html">메인으로</a>
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
         <div class="game-info">
@@ -1649,4 +1671,3 @@
     </script>
 </body>
 </html>
-
