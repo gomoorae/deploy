@@ -14,7 +14,7 @@
   {
     "title": "Racing Bike",
     "description": "바이크로 도로를 달리는 레이싱 게임",
-    "thumbnail": "games/bike_game/asset/bike.png",
+    "thumbnail": "thumbs/bike_game_v1.svg",
     "url": "games/bike_game/index.html"
   }
 ]
