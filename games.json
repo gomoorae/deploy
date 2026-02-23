@@ -10,6 +10,12 @@
     "description": "패들로 공을 튕겨 벽돌을 깨는 게임",
     "thumbnail": "thumbs/brick_breaker_v2.svg",
     "url": "games/brick_breaker/index.html"
+  },
+  {
+    "title": "Racing Bike",
+    "description": "바이크로 도로를 달리는 레이싱 게임",
+    "thumbnail": "games/bike_game/asset/bike.png",
+    "url": "games/bike_game/index.html"
   }
 ]
 

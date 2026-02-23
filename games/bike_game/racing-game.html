@@ -1,0 +1,1652 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>바이크 칼치기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            height: 100dvh; /* 모바일에서 실제 보이는 높이 */
+            max-height: 800px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            overflow: hidden;
+            transition: transform 0.1s ease-out;
+        }
+        
+        @supports not (height: 100dvh) {
+            .game-container {
+                height: 100vh;
+            }
+        }
+        
+        /* 모바일에서 주소창이 사라졌을 때 높이 조정 */
+        @media (max-width: 767px) {
+            .game-container {
+                max-height: none;
+                border: none;
+            }
+        }
+        
+        .game-container.shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -5px); }
+            20% { transform: translate(10px, 5px); }
+            30% { transform: translate(-8px, 8px); }
+            40% { transform: translate(8px, -8px); }
+            50% { transform: translate(-5px, 5px); }
+            60% { transform: translate(5px, -5px); }
+            70% { transform: translate(-3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            90% { transform: translate(-2px, 2px); }
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: calc(100% - 120px);
+            background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        }
+
+        .game-info {
+            padding: 15px;
+            background: #0f0f0f;
+            border-top: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+        
+        .game-title {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .game-title h1 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff3333;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 2px;
+        }
+        
+        .game-title p {
+            font-size: 14px;
+            color: #aaa;
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .lives {
+            display: flex;
+            gap: 5px;
+        }
+
+        .life {
+            width: 20px;
+            height: 20px;
+            background: #ff4444;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .life.lost {
+            background: #333;
+            box-shadow: none;
+        }
+
+        .control-btn {
+            position: absolute;
+            width: 120px;
+            height: calc(100% - 120px); /* 게임 정보 칸 높이 제외 */
+            top: 0;
+            background: rgba(76, 175, 80, 0.15);
+            border: none;
+            color: #4CAF50;
+            font-size: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: none;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        
+        #leftBtn {
+            left: 0;
+            border-right: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        #rightBtn {
+            right: 0;
+            border-left: 2px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .control-btn:active {
+            background: rgba(76, 175, 80, 0.4);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #4CAF50;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            color: #ff4444;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .game-over p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .restart-btn {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: #45a049;
+        }
+
+        @media (min-width: 768px) {
+            .control-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-info">
+            <div class="info-item">
+                <div class="info-label">점수</div>
+                <div class="info-value" id="score">0</div>
+            </div>
+            <div class="game-title">
+                <h1>바이크 칼치기</h1>
+                <p>Made by Jeongsu</p>
+            </div>
+            <div class="info-item">
+                <div class="info-label">생명</div>
+                <div class="lives" id="lives">
+                    <div class="life"></div>
+                    <div class="life"></div>
+                    <div class="life"></div>
+                </div>
+            </div>
+        </div>
+        <button class="control-btn" id="leftBtn">←</button>
+        <button class="control-btn" id="rightBtn">→</button>
+        <div class="game-over" id="gameOver">
+            <h2>게임 오버!</h2>
+            <p>최종 점수: <span id="finalScore">0</span></p>
+            <button class="restart-btn" onclick="restartGame()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const gameContainer = document.querySelector('.game-container');
+
+        // 캔버스 크기 설정
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight - 120;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 게임 변수
+        let gameState = 'playing'; // playing, paused, gameOver
+        let score = 0;
+        let lives = 3;
+        let keys = {};
+        
+        // deltaTime 관리 (프레임 레이트 독립적인 움직임)
+        let lastTime = performance.now();
+        const TARGET_FPS = 60;
+        const FRAME_TIME = 1000 / TARGET_FPS;
+
+        // 플레이어 차량 (오토바이)
+        const player = {
+            x: 0,
+            y: 0,
+            width: 20, // 3% 증가
+            height: 55, // 3% 증가
+            speed: 5,
+            color: '#4CAF50',
+            rotation: 0 // 회전 각도 (라디안)
+        };
+
+        // 장애물 배열
+        let obstacles = [];
+        let obstacleSpeed = 9; // 초기 속도 9 (이전 6에서 50% 증가)
+        let obstacleSpawnRate = 0.02;
+        
+        // 차선 시스템 (도로를 여러 차선으로 나눔)
+        const LANE_COUNT = 4; // 4개 차선
+        let laneWidth = 0; // 차선 너비 (초기화 시 계산)
+        let occupiedLanes = new Set(); // 현재 장애물이 있는 차선 추적
+        
+        // 파티클 시스템
+        let exhaustParticles = []; // 배기 가스 파티클
+        let explosionParticles = []; // 폭발 파티클
+        
+        // 가로등 시스템
+        let lamps = []; // 가로등 객체 배열
+        const LAMP_SPACING = 500; // 가로등 간격
+        let lastLampY = 0; // 마지막 가로등 생성 위치
+        
+        // 생명 아이템 시스템
+        let lifeItems = []; // 생명 아이템 배열
+        let lastLifeItemScore = 0; // 마지막 생명 아이템 생성 점수
+        let lifeItemParticles = []; // 생명 아이템 파티클
+        
+        // 가드레일 설정
+        const GUARDRAIL_WIDTH = 15; // 가드레일 너비
+        let guardrailOffset = 0; // 가드레일 패턴 오프셋 (움직임 효과)
+        const CURVE_AMPLITUDE = 80; // 곡선의 최대 진폭 (더 큰 곡선)
+        const CURVE_FREQUENCY = 0.01; // 곡선 주파수
+        
+        // 도로 구간 시스템 (직선과 곡선 구간)
+        const ROAD_SECTION_LENGTH = 1500; // 각 구간의 길이 (더 긴 구간)
+        const STRAIGHT_SECTIONS = [0, 1, 2, 3, 4, 5]; // 직선 구간 인덱스 (0~5는 직선, 6~7은 곡선)
+        const SHOW_HITBOXES = false;
+        
+        function createSprite(src) {
+            const img = new Image();
+            img.src = src;
+            return img;
+        }
+        
+        const spriteAssets = {
+            player: createSprite('asset/bike.png'),
+            chaserCar: createSprite('asset/car_s.png'),
+            staticCars: [
+                createSprite('asset/car_1.png'),
+                createSprite('asset/car_2.png'),
+                createSprite('asset/car_3.png'),
+                createSprite('asset/car_4.png')
+            ]
+        };
+        
+        function getRandomStaticCarSprite() {
+            const list = spriteAssets.staticCars;
+            return list[Math.floor(Math.random() * list.length)];
+        }
+        
+        // 게임 시작: 직선 구간(section 2)의 중간에서 시작
+        let roadCurveOffset = 2 * ROAD_SECTION_LENGTH + ROAD_SECTION_LENGTH / 2; // 도로 곡선 오프셋
+
+        // 배기 가스 파티클 생성
+        function createExhaustParticle() {
+            if (gameState !== 'playing') return;
+            
+            // 오토바이 뒤쪽에서 배기 가스 생성
+            const exhaustX = player.x + player.width / 2 + Math.random() * 4 - 2;
+            const exhaustY = player.y + player.height;
+            
+            exhaustParticles.push({
+                x: exhaustX,
+                y: exhaustY,
+                vx: (Math.random() - 0.5) * 2,
+                vy: Math.random() * 2 + 1,
+                size: Math.random() * 3 + 2,
+                alpha: 1,
+                life: 1
+            });
+        }
+        
+        // 폭발 파티클 생성
+        function createExplosion(x, y) {
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                explosionParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 6 + 3,
+                    alpha: 1,
+                    life: 1,
+                    color: Math.random() > 0.5 ? '#ff4444' : '#ffaa00'
+                });
+            }
+        }
+        
+        // 파티클 업데이트
+        function updateParticles() {
+            // 배기 가스 파티클 업데이트
+            for (let i = exhaustParticles.length - 1; i >= 0; i--) {
+                const p = exhaustParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.02;
+                p.life -= 0.02;
+                p.size *= 0.98;
+                
+                if (p.life <= 0 || p.alpha <= 0) {
+                    exhaustParticles.splice(i, 1);
+                }
+            }
+            
+            // 폭발 파티클 업데이트
+            for (let i = explosionParticles.length - 1; i >= 0; i--) {
+                const p = explosionParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2; // 중력
+                p.alpha -= 0.03;
+                p.life -= 0.03;
+                p.size *= 0.96;
+                
+                if (p.life <= 0 || p.alpha <= 0) {
+                    explosionParticles.splice(i, 1);
+                }
+            }
+            
+            // 매 프레임마다 배기 가스 생성 (가끔씩)
+            if (Math.random() < 0.3) {
+                createExhaustParticle();
+            }
+        }
+        
+        // 파티클 그리기
+        function drawParticles() {
+            // 배기 가스 파티클
+            exhaustParticles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = '#888888';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // 폭발 파티클
+            explosionParticles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        // 플레이어 초기 위치
+        function initPlayer() {
+            player.x = canvas.width / 2 - player.width / 2;
+            player.y = canvas.height - player.height - 20; // 화면 아래쪽 (원래대로)
+            player.rotation = 0; // 회전 각도 초기화
+        }
+        
+        // 차선 너비 계산
+        function calculateLaneWidth() {
+            laneWidth = canvas.width / LANE_COUNT;
+        }
+        
+        // 차선 인덱스 가져오기 (x 좌표로부터)
+        function getLaneIndex(x) {
+            return Math.floor(x / laneWidth);
+        }
+        
+        // 차선의 중앙 x 좌표 가져오기
+        function getLaneCenterX(laneIndex) {
+            return laneIndex * laneWidth + laneWidth / 2;
+        }
+
+        // 키보드 입력
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // 터치 버튼 이벤트
+        let touchLeft = false;
+        let touchRight = false;
+
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchLeft = true;
+        });
+
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchLeft = false;
+        });
+
+        leftBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchLeft = true;
+        });
+
+        leftBtn.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchLeft = false;
+        });
+
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchRight = true;
+        });
+
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchRight = false;
+        });
+
+        rightBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchRight = true;
+        });
+
+        rightBtn.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchRight = false;
+        });
+        
+        // 전역 이벤트로 버튼 밖에서 손을 떼도 상태 해제
+        document.addEventListener('touchend', () => {
+            touchLeft = false;
+            touchRight = false;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            touchLeft = false;
+            touchRight = false;
+        });
+
+        // 현재 y 좌표가 어떤 도로 구간에 있는지 확인
+        function getRoadSection(y) {
+            // 화면 아래쪽은 직선, 위쪽에서 곡선이 나타남
+            const totalY = y + roadCurveOffset;
+            const section = Math.floor(totalY / ROAD_SECTION_LENGTH);
+            // 8개 구간 반복
+            return ((section % 8) + 8) % 8;
+        }
+        
+        // 현재 구간이 직선인지 곡선인지 확인
+        function isStraightSection(y) {
+            const section = getRoadSection(y);
+            return STRAIGHT_SECTIONS.includes(section % 8); // 8개 구간마다 반복 (0~5: 직선, 6~7: 곡선)
+        }
+        
+        // y 좌표에 따른 곡선 오프셋 계산
+        function getCurveOffset(y) {
+            // 직선 구간이면 곡선 없음
+            if (isStraightSection(y)) {
+                return 0;
+            }
+            
+            // 곡선 구간이면 사인파 적용 (방향 반대로)
+            const totalY = y + roadCurveOffset;
+            const sectionY = totalY % ROAD_SECTION_LENGTH;
+            const normalizedY = sectionY / ROAD_SECTION_LENGTH;
+            return -Math.sin(normalizedY * Math.PI * 2) * CURVE_AMPLITUDE; // 음수로 반대 방향
+        }
+        
+        // y 좌표에 따른 곡선 각도 계산 (라디안) - 장애물 회전용
+        function getCurveAngle(y) {
+            if (isStraightSection(y)) {
+                return 0;
+            }
+            
+            const totalY = y + roadCurveOffset;
+            const sectionY = totalY % ROAD_SECTION_LENGTH;
+            const normalizedY = sectionY / ROAD_SECTION_LENGTH;
+            // 곡선의 기울기를 계산 (장애물이 곡선을 따라 회전)
+            // 도로 곡선에 맞춰 회전 각도 증가
+            const angle = Math.cos(normalizedY * Math.PI * 2) * 0.15; // 더 큰 각도로 회전
+            return angle;
+        }
+        
+        // y 좌표에 따른 가드레일 x 위치 계산 (직선/곡선 구간)
+        function getGuardrailX(y, isLeft) {
+            const baseX = isLeft ? 0 : canvas.width - GUARDRAIL_WIDTH;
+            const curve = getCurveOffset(y);
+            return baseX + curve;
+        }
+
+        // 플레이어 이동
+        function updatePlayer(deltaTime = 1) {
+            if (gameState !== 'playing') return;
+
+            // 입력에 따른 회전
+            const rotationSpeed = 0.05; // 회전 속도
+            const maxRotation = 0.3; // 최대 회전 각도
+            
+            if (keys['ArrowLeft'] || keys['a'] || keys['A'] || touchLeft) {
+                player.x -= player.speed * deltaTime;
+                // 왼쪽으로 회전
+                if (player.rotation > -maxRotation) {
+                    player.rotation -= rotationSpeed * deltaTime;
+                }
+            } else if (keys['ArrowRight'] || keys['d'] || keys['D'] || touchRight) {
+                player.x += player.speed * deltaTime;
+                // 오른쪽으로 회전
+                if (player.rotation < maxRotation) {
+                    player.rotation += rotationSpeed * deltaTime;
+                }
+            } else {
+                // 입력이 없으면 회전을 점진적으로 원래대로
+                if (player.rotation > 0) {
+                    player.rotation = Math.max(0, player.rotation - rotationSpeed * 0.5 * deltaTime);
+                } else if (player.rotation < 0) {
+                    player.rotation = Math.min(0, player.rotation + rotationSpeed * 0.5 * deltaTime);
+                }
+            }
+        }
+
+        // 점수에 따른 최대 동시 장애물 수 계산
+        function getMaxObstacles() {
+            // 점수가 높아질수록 최대 동시 장애물 수 증가
+            // 최소 4개, 최대 LANE_COUNT - 1개 (최소 1개 차선은 항상 비워둠)
+            const baseMax = 4; // 기본 최대 4개 (시작부터 높은 난이도)
+            const scoreBasedIncrease = Math.floor(score / 500); // 500점마다 1개씩 증가
+            const maxObstacles = Math.min(baseMax + scoreBasedIncrease, LANE_COUNT - 1);
+            return Math.max(maxObstacles, 4); // 최소 4개는 보장
+        }
+
+        // 가로등 업데이트
+        function updateLamps(deltaTime = 1) {
+            // 가로등 이동
+            for (let i = lamps.length - 1; i >= 0; i--) {
+                lamps[i].y += obstacleSpeed * deltaTime; // 아래로 이동
+                
+                // 화면 아래로 나가면 제거
+                if (lamps[i].y > canvas.height + 100) {
+                    lamps.splice(i, 1);
+                }
+            }
+            
+            // 새 가로등 생성
+            if (lamps.length === 0 || lamps[lamps.length - 1].y > LAMP_SPACING) {
+                lamps.push({
+                    y: lamps.length === 0 ? -100 : lamps[lamps.length - 1].y - LAMP_SPACING
+                });
+            }
+        }
+        
+        // 생명 아이템 생성 (500점마다)
+        function spawnLifeItem() {
+            // 500점 단위로 체크
+            if (score >= lastLifeItemScore + 500) {
+                lastLifeItemScore = Math.floor(score / 500) * 500;
+                
+                // 이미 생명 아이템이 있는 차선 수집
+                const usedLanes = new Set();
+                lifeItems.forEach(item => {
+                    usedLanes.add(item.lane);
+                });
+                
+                // 장애물이 있는 차선도 수집
+                obstacles.forEach(obstacle => {
+                    if (obstacle.lane !== undefined) {
+                        usedLanes.add(obstacle.lane);
+                    }
+                });
+                
+                // 사용 가능한 차선 찾기
+                const availableLanes = [];
+                for (let i = 0; i < LANE_COUNT; i++) {
+                    if (!usedLanes.has(i)) {
+                        availableLanes.push(i);
+                    }
+                }
+                
+                // 사용 가능한 차선이 없으면 생성하지 않음
+                if (availableLanes.length === 0) {
+                    return;
+                }
+                
+                // 랜덤하게 사용 가능한 차선 선택
+                const randomLane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+                const itemSize = 40; // 크기 증가
+                const laneCenterX = getLaneCenterX(randomLane);
+                const spawnY = -itemSize - 20; // 화면 위에서 생성 (장애물과 같은 방식)
+                
+                // 곡선 고려
+                const curveOffset = getCurveOffset(spawnY);
+                
+                lifeItems.push({
+                    x: laneCenterX - itemSize / 2,
+                    y: spawnY,
+                    size: itemSize,
+                    lane: randomLane,
+                    baseLaneX: laneCenterX - itemSize / 2
+                });
+            }
+        }
+        
+        // 생명 아이템 파티클 생성
+        function createLifeItemParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 * i) / 8;
+                const speed = 0.5 + Math.random() * 0.3;
+                lifeItemParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 2,
+                    alpha: 1,
+                    life: 1,
+                    color: '#ff0066'
+                });
+            }
+        }
+        
+        // 생명 아이템 파티클 업데이트
+        function updateLifeItemParticles(deltaTime = 1) {
+            for (let i = lifeItemParticles.length - 1; i >= 0; i--) {
+                const p = lifeItemParticles[i];
+                p.x += p.vx * deltaTime;
+                p.y += p.vy * deltaTime;
+                p.alpha -= 0.02 * deltaTime;
+                p.life -= 0.02 * deltaTime;
+                p.size *= 0.98;
+                
+                if (p.life <= 0 || p.alpha <= 0) {
+                    lifeItemParticles.splice(i, 1);
+                }
+            }
+        }
+        
+        // 생명 아이템 업데이트
+        function updateLifeItems(deltaTime = 1) {
+            for (let i = lifeItems.length - 1; i >= 0; i--) {
+                // 아이템 이동 (장애물보다 느리게)
+                lifeItems[i].y += obstacleSpeed * 0.6 * deltaTime;
+                
+                // 곡선 오프셋 적용 (장애물과 동일한 방식)
+                const curveOffset = getCurveOffset(lifeItems[i].y);
+                lifeItems[i].x = lifeItems[i].baseLaneX + curveOffset;
+                
+                // 파티클 생성 (주기적으로)
+                if (Math.random() < 0.3 * deltaTime) {
+                    createLifeItemParticles(
+                        lifeItems[i].x + lifeItems[i].size / 2,
+                        lifeItems[i].y + lifeItems[i].size / 2
+                    );
+                }
+                
+                // 화면 밖으로 나가면 제거
+                if (lifeItems[i].y > canvas.height) {
+                    lifeItems.splice(i, 1);
+                }
+            }
+        }
+        
+        // 생명 아이템 그리기
+        function drawLifeItems() {
+            // 파티클 먼저 그리기
+            lifeItemParticles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // 하트 그리기
+            lifeItems.forEach(item => {
+                ctx.save();
+                ctx.translate(item.x + item.size / 2, item.y + item.size / 2);
+                
+                // 하트 모양 그리기 (회전 없음)
+                ctx.fillStyle = '#ff0066';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                
+                // 하트 외곽선
+                ctx.beginPath();
+                const size = item.size / 2;
+                ctx.moveTo(0, size * 0.3);
+                ctx.bezierCurveTo(-size, -size * 0.3, -size * 0.5, -size * 0.8, 0, -size * 0.2);
+                ctx.bezierCurveTo(size * 0.5, -size * 0.8, size, -size * 0.3, 0, size * 0.3);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // 강한 빛나는 효과
+                ctx.shadowColor = '#ff0066';
+                ctx.shadowBlur = 25;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.restore();
+            });
+        }
+        
+        // 생명 아이템 충돌 체크
+        function checkLifeItemCollision() {
+            for (let i = lifeItems.length - 1; i >= 0; i--) {
+                const item = lifeItems[i];
+                const itemRect = {
+                    x: item.x,
+                    y: item.y,
+                    width: item.size,
+                    height: item.size
+                };
+                
+                if (checkCollision(player, itemRect)) {
+                    // 생명 회복 (최대 3개)
+                    if (lives < 3) {
+                        lives++;
+                        updateLivesDisplay();
+                    }
+                    // 아이템 제거
+                    lifeItems.splice(i, 1);
+                }
+            }
+        }
+        
+        // 가로등 그리기
+        function drawLamps() {
+            lamps.forEach(lamp => {
+                const y = lamp.y;
+                
+                // 왼쪽 가로등
+                const xLeft = getGuardrailX(y, true);
+                
+                // 가로등 기둥
+                ctx.fillStyle = '#555';
+                ctx.fillRect(xLeft + 2, y, 8, 60);
+                
+                // 기둥 하이라이트
+                ctx.fillStyle = '#777';
+                ctx.fillRect(xLeft + 2, y, 3, 60);
+                
+                // 가로등 팔 (도로 안쪽으로)
+                ctx.fillStyle = '#555';
+                ctx.fillRect(xLeft + 6, y + 10, 25, 6);
+                
+                // 팔 하이라이트
+                ctx.fillStyle = '#777';
+                ctx.fillRect(xLeft + 6, y + 10, 25, 3);
+                
+                // 램프 갓 (불빛 덮개)
+                ctx.fillStyle = '#444';
+                ctx.beginPath();
+                ctx.moveTo(xLeft + 28, y + 10);
+                ctx.lineTo(xLeft + 32, y + 16);
+                ctx.lineTo(xLeft + 35, y + 16);
+                ctx.lineTo(xLeft + 31, y + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 가로등 불빛 (30% 축소)
+                ctx.fillStyle = '#ffff99';
+                ctx.beginPath();
+                ctx.arc(xLeft + 31, y + 18, 4.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 불빛 후광 효과 (30% 축소)
+                ctx.save();
+                ctx.globalAlpha = 0.2;
+                ctx.fillStyle = '#ffff66';
+                ctx.beginPath();
+                ctx.arc(xLeft + 31, y + 18, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 0.4;
+                ctx.beginPath();
+                ctx.arc(xLeft + 31, y + 18, 8.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // 오른쪽 가로등
+                const xRight = getGuardrailX(y, false);
+                
+                // 가로등 기둥
+                ctx.fillStyle = '#555';
+                ctx.fillRect(xRight + GUARDRAIL_WIDTH - 10, y, 8, 60);
+                
+                // 기둥 하이라이트
+                ctx.fillStyle = '#777';
+                ctx.fillRect(xRight + GUARDRAIL_WIDTH - 5, y, 3, 60);
+                
+                // 가로등 팔 (도로 안쪽으로)
+                ctx.fillStyle = '#555';
+                ctx.fillRect(xRight + GUARDRAIL_WIDTH - 31, y + 10, 25, 6);
+                
+                // 팔 하이라이트
+                ctx.fillStyle = '#777';
+                ctx.fillRect(xRight + GUARDRAIL_WIDTH - 31, y + 10, 25, 3);
+                
+                // 램프 갓 (불빛 덮개)
+                ctx.fillStyle = '#444';
+                ctx.beginPath();
+                ctx.moveTo(xRight + GUARDRAIL_WIDTH - 28, y + 10);
+                ctx.lineTo(xRight + GUARDRAIL_WIDTH - 32, y + 16);
+                ctx.lineTo(xRight + GUARDRAIL_WIDTH - 35, y + 16);
+                ctx.lineTo(xRight + GUARDRAIL_WIDTH - 31, y + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 가로등 불빛 (30% 축소)
+                ctx.fillStyle = '#ffff99';
+                ctx.beginPath();
+                ctx.arc(xRight + GUARDRAIL_WIDTH - 31, y + 18, 4.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 불빛 후광 효과 (30% 축소)
+                ctx.save();
+                ctx.globalAlpha = 0.2;
+                ctx.fillStyle = '#ffff66';
+                ctx.beginPath();
+                ctx.arc(xRight + GUARDRAIL_WIDTH - 31, y + 18, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 0.4;
+                ctx.beginPath();
+                ctx.arc(xRight + GUARDRAIL_WIDTH - 31, y + 18, 8.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+        
+        // 장애물 생성
+        function spawnObstacle() {
+            if (Math.random() < obstacleSpawnRate) {
+                // 현재 최대 장애물 수 계산
+                const maxObstacles = getMaxObstacles();
+                
+                // 생명 아이템이 있는 차선 수집
+                const lifeItemLanes = new Set();
+                lifeItems.forEach(item => {
+                    lifeItemLanes.add(item.lane);
+                });
+                
+                // 사용 가능한 차선 찾기 (장애물과 생명 아이템이 없는 차선)
+                const availableLanes = [];
+                for (let i = 0; i < LANE_COUNT; i++) {
+                    if (!occupiedLanes.has(i) && !lifeItemLanes.has(i)) {
+                        availableLanes.push(i);
+                    }
+                }
+                
+                // 사용 가능한 차선이 없으면 생성 불가
+                if (availableLanes.length < 1) {
+                    return;
+                }
+                
+                // 최대 장애물 수에 도달했으면 생성 불가 (최소 1개 차선은 항상 비워둠)
+                if (occupiedLanes.size >= maxObstacles) {
+                    return;
+                }
+                
+                // 랜덤하게 차선 선택 (모든 사용 가능한 차선 중에서)
+                const randomIndex = Math.floor(Math.random() * availableLanes.length);
+                const selectedLane = availableLanes[randomIndex];
+                
+                // 선택된 차선에 장애물 생성 (화면 위에서 생성)
+                const carWidth = 30; // 자동차 너비 (10% 감소)
+                const carHeight = 72; // 자동차 높이 (10% 감소)
+                const spawnY = -carHeight; // 자동차 높이 기준
+                const laneCenterX = getLaneCenterX(selectedLane);
+                const baseX = laneCenterX - carWidth / 2; // 자동차 너비 기준
+                
+                // 곡선을 고려한 x 위치 계산
+                const curveOffset = getCurveOffset(spawnY);
+                const obstacleX = baseX + curveOffset;
+                
+                // 가드레일 범위 내에 있는지 확인
+                const leftGuardrailX = getGuardrailX(spawnY, true);
+                const rightGuardrailX = getGuardrailX(spawnY, false);
+                
+                if (obstacleX < leftGuardrailX + GUARDRAIL_WIDTH || 
+                    obstacleX + carWidth > rightGuardrailX) { // 자동차 너비 기준
+                    // 가드레일 범위를 벗어나면 생성하지 않음
+                    return;
+                }
+                
+                // 새로 생성할 장애물의 영역 (자동차 크기)
+                const newObstacle = {
+                    x: obstacleX,
+                    y: spawnY,
+                    width: carWidth,
+                    height: carHeight
+                };
+                
+                // 기존 장애물들과 겹치는지 확인
+                const minDistance = 10; // 최소 거리 (겹침 방지)
+                let canSpawn = true;
+                
+                for (let existingObstacle of obstacles) {
+                    // 같은 차선인 경우 더 엄격하게 체크 (y 거리만 확인)
+                    if (existingObstacle.lane === selectedLane) {
+                        const yDistance = Math.abs(newObstacle.y - existingObstacle.y);
+                        // 같은 차선이면 최소 100px 간격 유지
+                        if (yDistance < 100) {
+                            canSpawn = false;
+                            break;
+                        }
+                    } else {
+                        // 다른 차선인 경우 x, y 모두 확인
+                        const yDistance = Math.abs(newObstacle.y - existingObstacle.y);
+                        if (yDistance < newObstacle.height + minDistance) {
+                            const xDistance = Math.abs(newObstacle.x - existingObstacle.x);
+                            if (xDistance < newObstacle.width + minDistance) {
+                                canSpawn = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (!canSpawn) {
+                    return; // 겹치면 생성하지 않음
+                }
+                
+                // 장애물 타입 결정 (10% 확률로 파란색 추적 자동차)
+                const isChaser = Math.random() < 0.1;
+                
+                // 각 장애물에 랜덤한 속도 배율 할당 (75%, 80%, 85% 중 하나)
+                const speedMultipliers = [0.75, 0.80, 0.85];
+                const randomSpeedMultiplier = speedMultipliers[Math.floor(Math.random() * speedMultipliers.length)];
+                
+                obstacles.push({
+                    x: obstacleX,
+                    y: spawnY,
+                    width: carWidth,
+                    height: carHeight,
+                    color: isChaser ? '#4444ff' : '#ff4444',
+                    lane: selectedLane,
+                    rotation: 0,
+                    isChaser: isChaser,
+                    speedMultiplier: randomSpeedMultiplier,
+                    sprite: isChaser ? spriteAssets.chaserCar : getRandomStaticCarSprite()
+                });
+                
+                // 차선을 점유로 표시
+                occupiedLanes.add(selectedLane);
+            }
+        }
+
+        // 장애물 업데이트
+        function updateObstacles(deltaTime = 1) {
+            if (gameState !== 'playing') return;
+
+            // 차선 너비 업데이트 (화면 크기 변경 대응)
+            calculateLaneWidth();
+            
+            // 점유된 차선 초기화
+            occupiedLanes.clear();
+            
+            // 현재 화면에 있는 장애물들의 차선 업데이트
+            obstacles.forEach(obstacle => {
+                const currentLane = getLaneIndex(obstacle.x + obstacle.width / 2);
+                if (currentLane >= 0 && currentLane < LANE_COUNT) {
+                    occupiedLanes.add(currentLane);
+                }
+            });
+
+            // 새 장애물 생성
+            spawnObstacle();
+
+            // 장애물 이동 (아래로 이동, 각 장애물의 개별 속도 배율 적용)
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const speedMultiplier = obstacles[i].speedMultiplier || 0.85; // 기본값 0.85
+                obstacles[i].y += obstacleSpeed * speedMultiplier * deltaTime;
+                
+                // 곡선 오프셋 계산
+                const curveOffset = getCurveOffset(obstacles[i].y);
+                
+                // 파란색 추적 자동차 AI (플레이어 근처에서 접근)
+                if (obstacles[i].isChaser) {
+                    const distanceToPlayer = Math.abs(obstacles[i].y - player.y);
+                    // 플레이어가 350px 이내에 있을 때 추적
+                    if (distanceToPlayer < 350) {
+                        const playerCenterX = player.x + player.width / 2;
+                        const obstacleCenterX = obstacles[i].x + obstacles[i].width / 2;
+                        const dx = playerCenterX - obstacleCenterX;
+                        
+                        // 추적 속도 (1.6px - 기존 2px에서 20% 감소)
+                        const chaseSpeed = 1.6;
+                        const moveDirection = Math.sign(dx);
+                        const nextX = obstacles[i].x + moveDirection * chaseSpeed * deltaTime;
+                        
+                        // 다른 장애물(빨간 자동차)과 충돌 체크
+                        let canMove = true;
+                        for (let j = 0; j < obstacles.length; j++) {
+                            if (i === j || obstacles[j].isChaser) continue; // 자신과 다른 추적 자동차는 제외
+                            
+                            // y 거리가 가까운 장애물만 체크
+                            const yDistance = Math.abs(obstacles[i].y - obstacles[j].y);
+                            if (yDistance < 100) {
+                                // 다음 위치에서 x 충돌 체크
+                                const willOverlap = !(nextX + obstacles[i].width < obstacles[j].x || 
+                                                     nextX > obstacles[j].x + obstacles[j].width);
+                                if (willOverlap) {
+                                    canMove = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 충돌하지 않으면 이동
+                        if (canMove) {
+                            obstacles[i].x += moveDirection * chaseSpeed * deltaTime;
+                            
+                            // 추적 방향으로 회전 애니메이션 추가
+                            const targetChaseRotation = moveDirection * 0.15; // 좌우로 약간 회전
+                            if (obstacles[i].chaseRotation === undefined) {
+                                obstacles[i].chaseRotation = 0;
+                            }
+                            // 부드럽게 회전
+                            obstacles[i].chaseRotation += (targetChaseRotation - obstacles[i].chaseRotation) * 0.1;
+                        } else {
+                            // 멈춰있으면 회전 초기화
+                            if (obstacles[i].chaseRotation !== undefined) {
+                                obstacles[i].chaseRotation *= 0.9;
+                            }
+                        }
+                    } else {
+                        // 추적 범위 밖이면 회전 초기화
+                        if (obstacles[i].chaseRotation !== undefined) {
+                            obstacles[i].chaseRotation *= 0.9;
+                        }
+                    }
+                    
+                    // 추적 자동차는 현재 x 위치를 유지하면서 곡선 오프셋만 추가 적용
+                    // 이전 프레임의 곡선 오프셋 제거 후 새 오프셋 적용
+                    if (obstacles[i].lastCurveOffset !== undefined) {
+                        obstacles[i].x -= obstacles[i].lastCurveOffset;
+                    }
+                    obstacles[i].x += curveOffset;
+                    obstacles[i].lastCurveOffset = curveOffset;
+                } else {
+                    // 일반 장애물은 차선 위치로 리셋
+                    const baseLaneX = getLaneCenterX(obstacles[i].lane) - obstacles[i].width / 2;
+                    obstacles[i].x = baseLaneX + curveOffset;
+                }
+                
+                // 회전 각도 업데이트 (부드럽게 보간)
+                const targetRotation = getCurveAngle(obstacles[i].y);
+                // 파란차의 경우 추적 회전도 추가
+                const chaseRotation = obstacles[i].chaseRotation || 0;
+                const finalTargetRotation = targetRotation + chaseRotation;
+                
+                if (obstacles[i].rotation === undefined) {
+                    obstacles[i].rotation = finalTargetRotation;
+                } else {
+                    // 부드럽게 회전 (선형 보간)
+                    const rotationSpeed = 0.1; // 회전 보간 속도
+                    obstacles[i].rotation += (finalTargetRotation - obstacles[i].rotation) * rotationSpeed;
+                }
+                
+                // 같은 차선의 다른 차량과 겹침 방지 (실시간 체크)
+                if (!obstacles[i].isChaser) {
+                    for (let j = 0; j < obstacles.length; j++) {
+                        if (i === j || obstacles[j].isChaser) continue;
+                        
+                        // 같은 차선의 차량만 체크
+                        if (obstacles[i].lane === obstacles[j].lane) {
+                            const yDistance = obstacles[i].y - obstacles[j].y;
+                            const minGap = 75; // 최소 간격
+                            
+                            // 뒤차(i)가 앞차(j)에 너무 가까워진 경우
+                            if (yDistance > 0 && yDistance < minGap) {
+                                // 뒤차를 뒤로 밀어냄
+                                obstacles[i].y = obstacles[j].y + minGap;
+                            }
+                        }
+                    }
+                }
+                
+                // 가드레일 범위를 벗어나면 제거
+                const leftGuardrailX = getGuardrailX(obstacles[i].y, true);
+                const rightGuardrailX = getGuardrailX(obstacles[i].y, false);
+                
+                if (obstacles[i].x < leftGuardrailX + GUARDRAIL_WIDTH || 
+                    obstacles[i].x + obstacles[i].width > rightGuardrailX) {
+                    // 차선 점유 해제
+                    if (obstacles[i].lane !== undefined) {
+                        occupiedLanes.delete(obstacles[i].lane);
+                    }
+                    obstacles.splice(i, 1);
+                    continue;
+                }
+
+                // 화면 밖으로 나간 장애물 제거 (아래쪽으로 나감)
+                if (obstacles[i].y > canvas.height) {
+                    // 차선 점유 해제
+                    if (obstacles[i].lane !== undefined) {
+                        occupiedLanes.delete(obstacles[i].lane);
+                    }
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            }
+
+            // 가드레일 패턴 오프셋 업데이트 (움직이는 효과)
+            guardrailOffset += obstacleSpeed * deltaTime;
+            if (guardrailOffset > 40) {
+                guardrailOffset = 0;
+            }
+            
+            // 도로 곡선 오프셋 업데이트 (아래에서 위로 이동하는 효과)
+            roadCurveOffset -= obstacleSpeed * deltaTime;
+            
+            // 가로등 오프셋 업데이트 (가로등이 장애물과 같은 속도로 흘러내림)
+            guardrailOffset += obstacleSpeed * deltaTime;
+
+            // 난이도 증가 (속도와 생성 빈도 증가)
+            // 속도: 기본 9에서 시작, 점수에 따라 더 빠르게 증가 (최대 18)
+            obstacleSpeed = Math.min(9 + score / 300, 18);
+            
+            // 생성 빈도: 점수에 따라 더 빠르게 증가 (최대 0.08)
+            obstacleSpawnRate = Math.min(0.02 + score / 8000, 0.08);
+        }
+
+        // 충돌 감지
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // 화면 흔들림 효과
+        function shakeScreen() {
+            gameContainer.classList.add('shake');
+            setTimeout(() => {
+                gameContainer.classList.remove('shake');
+            }, 500);
+        }
+
+        // 가드레일 충돌 체크
+        function checkGuardrailCollision() {
+            // 플레이어의 여러 지점에서 가드레일 위치 확인
+            const checkPoints = [
+                { x: player.x, y: player.y }, // 왼쪽 상단
+                { x: player.x + player.width, y: player.y }, // 오른쪽 상단
+                { x: player.x, y: player.y + player.height }, // 왼쪽 하단
+                { x: player.x + player.width, y: player.y + player.height } // 오른쪽 하단
+            ];
+            
+            for (let point of checkPoints) {
+                const leftGuardrailX = getGuardrailX(point.y, true);
+                const rightGuardrailX = getGuardrailX(point.y, false);
+                
+                // 왼쪽 가드레일 충돌 체크
+                if (point.x < leftGuardrailX + GUARDRAIL_WIDTH) {
+                    return true;
+                }
+                
+                // 오른쪽 가드레일 충돌 체크
+                if (point.x > rightGuardrailX) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // 충돌 체크
+        function checkCollisions() {
+            if (gameState !== 'playing') return;
+
+            // 가드레일 충돌 체크
+            if (checkGuardrailCollision()) {
+                // 충돌 발생
+                lives--;
+                updateLivesDisplay();
+                
+                // 화면 흔들림 효과
+                shakeScreen();
+                
+                // 폭발 효과
+                createExplosion(player.x + player.width / 2, player.y + player.height / 2);
+
+                // 게임을 멈춤 (충돌 장면 유지)
+                gameState = 'paused';
+
+                // 생명이 없으면 게임 오버
+                if (lives <= 0) {
+                    setTimeout(() => {
+                        gameOver();
+                    }, 1500);
+                } else {
+                    // 1.5초 후에 리셋 및 게임 재개
+                    setTimeout(() => {
+                        if (gameState === 'paused') {
+                            // 모든 장애물 제거
+                            obstacles = [];
+                            occupiedLanes.clear();
+
+                            // 플레이어를 화면 중앙으로 이동
+                            initPlayer();
+                            
+                            // 게임 재개
+                            gameState = 'playing';
+                        }
+                    }, 1500); // 1.5초 동안 충돌 장면 유지
+                }
+                return;
+            }
+
+            for (let obstacle of obstacles) {
+                if (checkCollision(player, obstacle)) {
+                    // 충돌 발생
+                    lives--;
+                    updateLivesDisplay();
+                    
+                    // 화면 흔들림 효과
+                    shakeScreen();
+                    
+                    // 폭발 효과
+                    createExplosion(player.x + player.width / 2, player.y + player.height / 2);
+
+                    // 게임을 멈춤 (충돌 장면 유지)
+                    gameState = 'paused';
+
+                    // 생명이 없으면 게임 오버
+                    if (lives <= 0) {
+                        setTimeout(() => {
+                            gameOver();
+                        }, 1500);
+                    } else {
+                        // 1.5초 후에 리셋 및 게임 재개
+                        setTimeout(() => {
+                            if (gameState === 'paused') {
+                                // 모든 장애물 제거
+                                obstacles = [];
+                                occupiedLanes.clear();
+
+                                // 플레이어를 화면 중앙으로 이동
+                                initPlayer();
+                                
+                                // 게임 재개
+                                gameState = 'playing';
+                            }
+                        }, 1500); // 1.5초 동안 충돌 장면 유지
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 생명 표시 업데이트
+        function updateLivesDisplay() {
+            const lifeElements = livesElement.querySelectorAll('.life');
+            lifeElements.forEach((life, index) => {
+                if (index < lives) {
+                    life.classList.remove('lost');
+                } else {
+                    life.classList.add('lost');
+                }
+            });
+        }
+
+        // 게임 오버
+        function gameOver() {
+            gameState = 'gameOver';
+            finalScoreElement.textContent = score;
+            gameOverElement.classList.add('show');
+        }
+
+        // 게임 재시작
+        function restartGame() {
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+            obstacles = [];
+            lifeItems = []; // 생명 아이템 초기화
+            lifeItemParticles = []; // 생명 아이템 파티클 초기화
+            lastLifeItemScore = 0; // 생명 아이템 스코어 초기화
+            obstacleSpeed = 9; // 초기 속도 9 (이전 6에서 50% 증가)
+            obstacleSpawnRate = 0.02;
+            occupiedLanes.clear();
+            roadCurveOffset = 2 * ROAD_SECTION_LENGTH + ROAD_SECTION_LENGTH / 2; // 직선 구간(section 2) 중간에서 시작
+            scoreElement.textContent = score;
+            updateLivesDisplay();
+            gameOverElement.classList.remove('show');
+            initPlayer();
+        }
+
+        // 회전된 사각형 그리기 헬퍼 함수
+        function drawRotatedRect(x, y, width, height, rotation, fillStyle) {
+            ctx.save();
+            ctx.translate(x + width / 2, y + height / 2);
+            ctx.rotate(rotation);
+            ctx.fillStyle = fillStyle;
+            ctx.fillRect(-width / 2, -height / 2, width, height);
+            ctx.restore();
+        }
+
+        function isSpriteReady(img) {
+            return !!img && img.complete && img.naturalWidth > 0;
+        }
+
+        function drawHitbox(rect, strokeStyle = '#00ff88') {
+            if (!SHOW_HITBOXES) return;
+            ctx.save();
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+            ctx.restore();
+        }
+        
+        function drawSquareSprite(img, boxWidth, boxHeight, fallbackColor) {
+            const size = Math.max(boxWidth, boxHeight);
+            const offsetX = -size / 2;
+            const offsetY = -size / 2;
+            
+            if (isSpriteReady(img)) {
+                ctx.drawImage(img, offsetX, offsetY, size, size);
+            } else {
+                ctx.fillStyle = fallbackColor;
+                ctx.fillRect(offsetX, offsetY, size, size);
+            }
+        }
+
+        // 오토바이 그리기 (이미지 에셋)
+        function drawPlayer() {
+            const centerX = player.x + player.width / 2;
+            const centerY = player.y + player.height / 2;
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(player.rotation);
+            
+            drawSquareSprite(spriteAssets.player, player.width, player.height, '#4CAF50');
+            
+            ctx.restore();
+            drawHitbox(player, '#00ff88');
+        }
+
+        // 자동차 그리기 (이미지 에셋)
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                const centerX = obstacle.x + obstacle.width / 2;
+                const centerY = obstacle.y + obstacle.height / 2;
+                const rotation = obstacle.rotation || 0;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotation);
+                
+                drawSquareSprite(
+                    obstacle.sprite,
+                    obstacle.width,
+                    obstacle.height,
+                    obstacle.color || '#ff4444'
+                );
+                
+                ctx.restore();
+                drawHitbox(obstacle, obstacle.isChaser ? '#33ccff' : '#ff9933');
+            });
+        }
+
+        // 가드레일 그리기
+        function drawGuardrails() {
+            ctx.fillStyle = '#ffaa00'; // 주황색 가드레일
+            ctx.strokeStyle = '#cc8800';
+            ctx.lineWidth = 2;
+            
+            // 곡선 가드레일 그리기 (세그먼트별로)
+            const segmentHeight = 5; // 세그먼트 높이
+            
+            // 왼쪽 가드레일
+            ctx.beginPath();
+            for (let y = 0; y <= canvas.height; y += segmentHeight) {
+                const x = getGuardrailX(y, true);
+                if (y === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            for (let y = canvas.height; y >= 0; y -= segmentHeight) {
+                const x = getGuardrailX(y, true) + GUARDRAIL_WIDTH;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 오른쪽 가드레일
+            ctx.beginPath();
+            for (let y = 0; y <= canvas.height; y += segmentHeight) {
+                const x = getGuardrailX(y, false);
+                if (y === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            for (let y = canvas.height; y >= 0; y -= segmentHeight) {
+                const x = getGuardrailX(y, false) + GUARDRAIL_WIDTH;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // 도로 표시선 그리기 (직선/곡선 구간)
+        function drawRoad() {
+            // 1. 전체 배경 (풀밭 색상)
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 2. 도로 영역을 y축 따라 가드레일 사이만 그리기
+            for (let y = 0; y < canvas.height; y++) {
+                const leftGuardrailX = getGuardrailX(y, true);
+                const rightGuardrailX = getGuardrailX(y, false);
+                
+                // 도로 아스팔트 색상
+                ctx.fillStyle = '#555';
+                ctx.fillRect(leftGuardrailX + GUARDRAIL_WIDTH, y, 
+                            rightGuardrailX - leftGuardrailX - GUARDRAIL_WIDTH, 1);
+            }
+            
+            // 3. 아스팔트 노이즈 효과 (미세한 질감) - 도로 영역에만
+            for (let i = 0; i < 1000; i++) {
+                const y = Math.random() * canvas.height;
+                const leftGuardrailX = getGuardrailX(y, true);
+                const rightGuardrailX = getGuardrailX(y, false);
+                const x = leftGuardrailX + GUARDRAIL_WIDTH + Math.random() * (rightGuardrailX - leftGuardrailX - GUARDRAIL_WIDTH);
+                const brightness = Math.random() * 40 + 40;
+                ctx.fillStyle = `rgba(${brightness}, ${brightness}, ${brightness}, 0.3)`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            // 4. 차선 구분선 그리기 (4개 차선)
+            ctx.setLineDash([40, 40]);
+            ctx.lineDashOffset = roadCurveOffset % 80; // 80 = 40 + 40 (점선 패턴 전체 길이)
+            
+            // 4개 차선을 위한 3개의 구분선
+            const laneLines = [
+                { position: 0.25, color: '#ffffff', width: 2 },  // 왼쪽 차선 (차선 0-1 사이)
+                { position: 0.50, color: '#ffff00', width: 3 },  // 중앙선 (차선 1-2 사이)
+                { position: 0.75, color: '#ffffff', width: 2 }   // 오른쪽 차선 (차선 2-3 사이)
+            ];
+            
+            laneLines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.width;
+                
+                ctx.beginPath();
+                for (let y = 0; y < canvas.height; y += 2) {
+                    const leftGuardrailX = getGuardrailX(y, true);
+                    const rightGuardrailX = getGuardrailX(y, false);
+                    const roadWidth = rightGuardrailX - leftGuardrailX - GUARDRAIL_WIDTH * 2;
+                    
+                    // 도로 폭의 해당 비율 위치에 점선 그리기 (가드레일 사이의 상대 위치)
+                    const lineX = leftGuardrailX + GUARDRAIL_WIDTH + roadWidth * line.position;
+                    
+                    if (y === 0) {
+                        ctx.moveTo(lineX, y);
+                    } else {
+                        ctx.lineTo(lineX, y);
+                    }
+                }
+                ctx.stroke();
+            });
+            
+            ctx.setLineDash([]);
+            ctx.lineDashOffset = 0;
+        }
+
+        // 게임 루프
+        function gameLoop(currentTime) {
+            // 첫 프레임이거나 currentTime이 없으면 초기화
+            if (!currentTime || currentTime - lastTime > 1000) {
+                lastTime = currentTime || performance.now();
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            // deltaTime 계산 (밀리초를 프레임 배율로 변환)
+            const deltaTime = (currentTime - lastTime) / FRAME_TIME;
+            lastTime = currentTime;
+            
+            // deltaTime이 너무 크면 제한 (탭 전환 등으로 인한 큰 점프 방지)
+            const clampedDelta = Math.min(deltaTime, 3);
+            
+            // 화면 지우기
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 도로 그리기 (가장 먼저)
+            drawRoad();
+            
+            // 가드레일 그리기 (도로 위에 그려서 항상 보이게)
+            drawGuardrails();
+
+            if (gameState === 'playing') {
+                updatePlayer(clampedDelta);
+                updateObstacles(clampedDelta);
+                updateLamps(clampedDelta);
+                spawnLifeItem(); // 생명 아이템 생성 체크
+                updateLifeItems(clampedDelta); // 생명 아이템 업데이트
+                updateLifeItemParticles(clampedDelta); // 생명 아이템 파티클 업데이트
+                checkCollisions();
+                checkLifeItemCollision(); // 생명 아이템 충돌 체크
+            }
+            
+            // 파티클 업데이트 및 그리기
+            updateParticles();
+            drawParticles();
+
+            // 게임 요소 그리기
+            drawLamps();
+            drawLifeItems(); // 생명 아이템 그리기
+            drawObstacles();
+            drawPlayer();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 게임 시작
+        calculateLaneWidth();
+        initPlayer();
+        updateLivesDisplay();
+        gameLoop();
+    </script>
+</body>
+</html>
+
