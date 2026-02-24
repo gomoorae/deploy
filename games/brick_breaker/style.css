@@ -13,12 +13,8 @@ body {
 }
 
 .home-btn {
-  position: fixed;
-  left: 50%;
-  bottom: clamp(10px, 2.8vh, 28px);
-  transform: translateX(-50%);
-  z-index: 20;
   display: inline-block;
+  margin-top: 6px;
   padding: 18px 33px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.36);
@@ -39,7 +35,6 @@ body {
 .game-wrap {
   width: min(96vw, 1340px);
   text-align: center;
-  padding-bottom: 88px;
 }
 
 h1 {
