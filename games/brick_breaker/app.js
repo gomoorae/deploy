@@ -140,6 +140,7 @@ let currentStageIndex = 0;
 let remainingBricks = 0;
 let stageClearUntil = 0;
 let gameWon = false;
+let gameLost = false;
 
 function createBall(x, y, dx, dy) {
   return {
@@ -216,10 +217,11 @@ function updateHud() {
   livesEl.textContent = String(lives);
 }
 
-function endGame(text) {
+function endGame(text, lost = false) {
   running = false;
   isPaused = false;
   gameWon = false;
+  gameLost = lost;
   stageClearUntil = 0;
   messageEl.textContent = `${text} (R 키로 다시 시작)`;
 }
@@ -232,6 +234,7 @@ function loadStage(stageIndex) {
   running = true;
   isPaused = false;
   gameWon = false;
+  gameLost = false;
   buildBricks();
   resetBallAndPaddle();
   messageEl.textContent = `스테이지 ${currentStageIndex + 1}`;
@@ -241,6 +244,7 @@ function restart() {
   score = 0;
   lives = 3;
   gameWon = false;
+  gameLost = false;
   loadStage(0);
   updateHud();
 }
@@ -395,6 +399,7 @@ function winGame() {
   running = false;
   isPaused = false;
   gameWon = true;
+  gameLost = false;
   stageClearUntil = 0;
   powerups = [];
   messageEl.textContent = "";
@@ -474,7 +479,7 @@ function updateBallPhysics() {
     lives -= 1;
     updateHud();
     if (lives <= 0) {
-      endGame("게임 오버!");
+      endGame("게임 오버!", true);
     } else {
       resetBallAndPaddle();
     }
@@ -525,6 +530,19 @@ function drawWinOverlay() {
   ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
 }
 
+function drawLoseOverlay() {
+  if (!gameLost) return;
+
+  ctx.fillStyle = "rgba(2, 6, 23, 0.68)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#f8fafc";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 120px Segoe UI";
+  ctx.fillText("You Lose..", canvas.width / 2, canvas.height / 2);
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBricks();
@@ -532,6 +550,7 @@ function draw() {
   drawBalls();
   drawPaddle();
   drawWinOverlay();
+  drawLoseOverlay();
   updatePhysics();
   requestAnimationFrame(draw);
 }
