@@ -1,19 +1,79 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Brick Breaker thumbnail">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1b1b1b" />
-      <stop offset="100%" stop-color="#3d2c1f" />
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
     </linearGradient>
+    <linearGradient id="paddle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0ea5e9" />
+    </linearGradient>
+    <radialGradient id="ball" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#fff7ed" />
+      <stop offset="100%" stop-color="#f97316" />
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="640" height="400" fill="url(#g)"/>
-  <g>
-    <rect x="80" y="80" width="480" height="190" fill="#f4a261"/>
-    <line x1="80" y1="140" x2="560" y2="140" stroke="#1b1b1b" stroke-width="6"/>
-    <line x1="80" y1="200" x2="560" y2="200" stroke="#1b1b1b" stroke-width="6"/>
-    <line x1="200" y1="80" x2="200" y2="270" stroke="#1b1b1b" stroke-width="6"/>
-    <line x1="320" y1="80" x2="320" y2="270" stroke="#1b1b1b" stroke-width="6"/>
-    <line x1="440" y1="80" x2="440" y2="270" stroke="#1b1b1b" stroke-width="6"/>
-    <rect x="250" y="310" width="140" height="16" fill="#e9ecef"/>
-    <circle cx="320" cy="288" r="16" fill="#ffffff"/>
+
+  <rect width="640" height="400" fill="url(#bg)" />
+
+  <g opacity="0.25" stroke="#334155" stroke-width="2">
+    <line x1="0" y1="56" x2="640" y2="56" />
+    <line x1="0" y1="104" x2="640" y2="104" />
+    <line x1="0" y1="152" x2="640" y2="152" />
+    <line x1="0" y1="200" x2="640" y2="200" />
+    <line x1="0" y1="248" x2="640" y2="248" />
   </g>
+
+  <g>
+    <rect x="58" y="42" width="58" height="22" rx="5" fill="#eab308" />
+    <rect x="124" y="42" width="58" height="22" rx="5" fill="#ef4444" />
+    <rect x="190" y="42" width="58" height="22" rx="5" fill="#7dd3fc" />
+    <rect x="256" y="42" width="58" height="22" rx="5" fill="#1d4ed8" />
+    <rect x="322" y="42" width="58" height="22" rx="5" fill="#166534" />
+    <rect x="388" y="42" width="58" height="22" rx="5" fill="#d78fa8" />
+    <rect x="454" y="42" width="58" height="22" rx="5" fill="#eab308" />
+    <rect x="520" y="42" width="58" height="22" rx="5" fill="#ef4444" />
+
+    <rect x="58" y="70" width="58" height="22" rx="5" fill="#ef4444" />
+    <rect x="124" y="70" width="58" height="22" rx="5" fill="#7dd3fc" />
+    <rect x="190" y="70" width="58" height="22" rx="5" fill="#1d4ed8" />
+    <rect x="256" y="70" width="58" height="22" rx="5" fill="#166534" />
+    <rect x="322" y="70" width="58" height="22" rx="5" fill="#d78fa8" />
+    <rect x="388" y="70" width="58" height="22" rx="5" fill="#eab308" />
+    <rect x="454" y="70" width="58" height="22" rx="5" fill="#ef4444" />
+    <rect x="520" y="70" width="58" height="22" rx="5" fill="#7dd3fc" />
+
+    <rect x="58" y="98" width="58" height="22" rx="5" fill="#7dd3fc" />
+    <rect x="124" y="98" width="58" height="22" rx="5" fill="#1d4ed8" />
+    <rect x="190" y="98" width="58" height="22" rx="5" fill="#166534" />
+    <rect x="256" y="98" width="58" height="22" rx="5" fill="#d78fa8" />
+    <rect x="322" y="98" width="58" height="22" rx="5" fill="#eab308" />
+    <rect x="388" y="98" width="58" height="22" rx="5" fill="#ef4444" />
+    <rect x="454" y="98" width="58" height="22" rx="5" fill="#7dd3fc" />
+    <rect x="520" y="98" width="58" height="22" rx="5" fill="#1d4ed8" />
+
+    <rect x="58" y="126" width="58" height="22" rx="5" fill="#1d4ed8" />
+    <rect x="124" y="126" width="58" height="22" rx="5" fill="#166534" />
+    <rect x="190" y="126" width="58" height="22" rx="5" fill="#d78fa8" />
+    <rect x="256" y="126" width="58" height="22" rx="5" fill="#eab308" />
+    <rect x="322" y="126" width="58" height="22" rx="5" fill="#ef4444" />
+    <rect x="388" y="126" width="58" height="22" rx="5" fill="#7dd3fc" />
+    <rect x="454" y="126" width="58" height="22" rx="5" fill="#1d4ed8" />
+    <rect x="520" y="126" width="58" height="22" rx="5" fill="#166534" />
+  </g>
+
+  <g filter="url(#glow)">
+    <path d="M346 254 L308 216" stroke="#fb923c" stroke-width="5" stroke-linecap="round" opacity="0.85" />
+    <circle cx="356" cy="264" r="12" fill="url(#ball)" />
+  </g>
+
+  <rect x="236" y="332" width="168" height="16" rx="8" fill="url(#paddle)" />
+  <rect x="242" y="336" width="156" height="4" rx="2" fill="#bae6fd" opacity="0.8" />
 </svg>
