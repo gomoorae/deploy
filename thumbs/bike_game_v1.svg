@@ -1,17 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#132a13" />
-      <stop offset="100%" stop-color="#31572c" />
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="10%" style="stop-color:#004e92;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#000428;stop-opacity:1" />
+      <stop offset="90%" style="stop-color:#004e92;stop-opacity:1" />
     </linearGradient>
+    <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+       <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.1"/>
+       <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.8"/>
+       <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.1"/>
+    </linearGradient>
+    <linearGradient id="engineGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#808080;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="exhaustGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#C0C0C0;" />
+      <stop offset="30%" style="stop-color:#8A2BE2;" /> <stop offset="70%" style="stop-color:#FF8C00;" /> <stop offset="100%" style="stop-color:#C0C0C0;" />
+    </linearGradient>
+    <radialGradient id="neonGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" style="stop-color:#00f260;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#0575e6;stop-opacity:0"/>
+    </radialGradient>
   </defs>
-  <rect width="640" height="400" fill="url(#bg)" />
-  <rect x="280" y="0" width="80" height="400" fill="#2f3e46" />
-  <rect x="310" y="0" width="20" height="400" fill="#f4d35e" />
-  <circle cx="320" cy="90" r="36" fill="#111" />
-  <rect x="288" y="112" width="64" height="120" rx="28" fill="#f77f00" />
-  <rect x="282" y="170" width="76" height="110" rx="30" fill="#14213d" />
-  <circle cx="272" cy="304" r="36" fill="#111" />
-  <circle cx="368" cy="304" r="36" fill="#111" />
-  <circle cx="320" cy="332" r="56" fill="#0b0f14" />
+
+  <rect width="500" height="300" fill="#121212" />
+  <ellipse cx="250" cy="260" rx="200" ry="20" fill="#000000" opacity="0.5" filter="blur(5px)"/>
+  <ellipse cx="250" cy="260" rx="180" ry="10" fill="url(#bodyGrad)" opacity="0.2" filter="blur(8px)"/>
+
+
+  <g transform="translate(50, 30) scale(0.9)">
+  
+    <g transform="translate(60, 160)">
+      <circle r="70" fill="#1a1a1a" stroke="#0a0a0a" stroke-width="5"/>
+      <circle r="55" fill="none" stroke="url(#engineGrad)" stroke-width="10"/>
+      <path d="M0,-55 L0,55 M-48,-28 L48,28 M48,-28 L-48,28" stroke="url(#engineGrad)" stroke-width="8" stroke-linecap="round"/>
+      <circle r="35" fill="none" stroke="#7f8c8d" stroke-width="5" stroke-dasharray="5,2"/>
+    </g>
+
+    <g transform="translate(350, 160)">
+      <circle r="70" fill="#1a1a1a" stroke="#0a0a0a" stroke-width="5"/>
+      <circle r="55" fill="none" stroke="url(#engineGrad)" stroke-width="10"/>
+       <path d="M0,-55 L0,55 M-48,-28 L48,28 M48,-28 L-48,28" stroke="url(#engineGrad)" stroke-width="8" stroke-linecap="round"/>
+      <circle r="40" fill="none" stroke="#7f8c8d" stroke-width="5" stroke-dasharray="5,2"/>
+    </g>
+
+    <g transform="translate(150, 120)">
+      <path d="M0,0 h120 l20,40 h-140 z" fill="url(#engineGrad)" />
+      <rect x="10" y="45" width="100" height="60" rx="5" fill="#2c3e50" stroke="url(#engineGrad)" stroke-width="2"/>
+      <g stroke="#1a1a1a" stroke-width="2">
+         <line x1="15" y1="55" x2="105" y2="55"/>
+         <line x1="15" y1="70" x2="105" y2="70"/>
+         <line x1="15" y1="85" x2="105" y2="85"/>
+      </g>
+      <path d="M-20,-40 L160,-30 L180,100" fill="none" stroke="#555" stroke-width="12" stroke-linecap="round"/>
+    </g>
+
+    <path d="M160,180 L250,190 C280,195, 320,180, 350,160 L380,155" fill="none" stroke="url(#exhaustGrad)" stroke-width="12" stroke-linecap="round"/>
+
+    <g filter="drop-shadow(2px 4px 6px rgba(0,0,0,0.5))">
+      <path d="M120,40 C120,10, 200,0, 250,20 C280,35, 260,80, 200,90 L140,80 Z" fill="url(#bodyGrad)" />
+      <path d="M140,30 C180,20, 220,25, 240,40" fill="none" stroke="url(#highlightGrad)" stroke-width="3" opacity="0.7"/>
+      
+      <path d="M250,20 L350,30 L380,100 C360,120, 300,130, 260,110 Z" fill="url(#bodyGrad)" />
+      <path d="M290,10 L340,20 L350,40 L280,35 Z" fill="#00d4ff" opacity="0.4"/>
+      
+      <path d="M60,50 L120,45 L140,80 L40,90 C20,80, 30,60, 60,50 Z" fill="url(#bodyGrad)"/>
+      <rect x="70" y="50" width="50" height="25" rx="10" fill="#222" /> </g>
+    
+    <circle cx="200" cy="150" r="5" fill="url(#neonGlow)"/>
+    <circle cx="260" cy="110" r="5" fill="url(#neonGlow)"/>
+    <path d="M355,65 L370,75" stroke="url(#neonGlow)" stroke-width="3"/> </g>
+  
+
 </svg>
