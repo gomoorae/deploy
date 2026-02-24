@@ -12,9 +12,34 @@ body {
   font-family: "Segoe UI", "Noto Sans KR", sans-serif;
 }
 
+.home-btn {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(10px, 2.8vh, 28px);
+  transform: translateX(-50%);
+  z-index: 20;
+  display: inline-block;
+  padding: 18px 33px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(0, 0, 0, 0.66);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.home-btn:hover {
+  background: rgba(20, 20, 20, 0.86);
+}
+
 .game-wrap {
   width: min(96vw, 1340px);
   text-align: center;
+  padding-bottom: 88px;
 }
 
 h1 {
