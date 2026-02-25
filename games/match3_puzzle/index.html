@@ -1,0 +1,1443 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>매치3 퍼즐</title>
+  <style>
+    :root {
+      --bg-1: #f7f1e1;
+      --bg-2: #d8e2dc;
+      --panel: rgba(255, 255, 255, 0.72);
+      --text: #2d3142;
+      --accent: #ef8354;
+      --tile-size: 58px;
+      --gap: 6px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255, 255, 255, 0.75), transparent 38%),
+        radial-gradient(circle at 88% 82%, rgba(255, 255, 255, 0.6), transparent 44%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2));
+      padding: 20px;
+    }
+
+    .app {
+      width: min(92vw, 620px);
+      background: var(--panel);
+      border: 1px solid rgba(45, 49, 66, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 36px rgba(45, 49, 66, 0.18);
+      padding: 18px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.6rem);
+      letter-spacing: 0.02em;
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .timer {
+      min-width: 74px;
+      text-align: right;
+    }
+
+    button {
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover { opacity: 0.92; }
+    button:active { transform: scale(0.96); }
+
+    .board-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, var(--tile-size));
+      grid-template-rows: repeat(8, var(--tile-size));
+      gap: var(--gap);
+      touch-action: none;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      padding: 8px;
+      border-radius: 16px;
+      background: rgba(45, 49, 66, 0.07);
+      z-index: 1;
+    }
+
+    .tile {
+      position: relative;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: inset 0 -8px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .tile.swapping {
+      z-index: 2;
+      transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .tile.type-0 { background: #E69F00; }
+    .tile.type-1 { background: #56B4E9; }
+    .tile.type-2 { background: #009E73; }
+    .tile.type-3 { background: #F0E442; }
+    .tile.type-4 { background: #0072B2; }
+    .tile.type-5 { background: #D55E00; }
+
+    .cell-empty {
+      border-radius: 14px;
+      border: 2px dashed rgba(45, 49, 66, 0.2);
+      background: rgba(45, 49, 66, 0.08);
+    }
+
+    .glyph {
+      position: absolute;
+      inset: 20%;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+    }
+
+    .shape-0 { border-radius: 50%; }
+    .shape-1 { border-radius: 4px; }
+
+    .shape-2 {
+      border-radius: 3px;
+      transform: rotate(45deg) scale(0.95);
+    }
+
+    .shape-3 {
+      clip-path: polygon(50% 2%, 2% 98%, 98% 98%);
+      inset: 18%;
+    }
+
+    .shape-4 {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 92%, 50% 70%, 21% 92%, 32% 57%, 2% 35%, 39% 35%);
+      inset: 16%;
+    }
+
+    .shape-5 {
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      inset: 18%;
+    }
+
+    .tile.selected {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 3px rgba(45, 49, 66, 0.3), inset 0 -8px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .tile.removing {
+      transform: scale(0.85);
+      opacity: 0.4;
+    }
+
+    .hint {
+      margin: 14px 2px 2px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .fx-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .ui-fx-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .fall-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6;
+      contain: layout paint;
+    }
+
+    .overlay-tile,
+    .overlay-hole {
+      position: absolute;
+    }
+
+    .overlay-static {
+      z-index: 4;
+    }
+
+    .overlay-hole {
+      background: rgba(45, 49, 66, 0.22);
+      border-color: rgba(45, 49, 66, 0.45);
+    }
+
+    .swap-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 7;
+    }
+
+    .swap-ghost {
+      position: absolute;
+      z-index: 9;
+    }
+
+    .debug-panel {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      width: min(92vw, 460px);
+      max-height: 40vh;
+      overflow: auto;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(20, 22, 31, 0.88);
+      color: #d8f3dc;
+      font: 12px/1.35 Consolas, "Courier New", monospace;
+      z-index: 9999;
+      pointer-events: auto;
+      user-select: text;
+      white-space: pre-wrap;
+    }
+
+    .game-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 22, 31, 0.42);
+      z-index: 40;
+      padding: 16px;
+    }
+
+    .game-overlay.show {
+      display: flex;
+    }
+
+    .game-overlay-card {
+      min-width: min(92vw, 360px);
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(45, 49, 66, 0.12);
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    .game-overlay-title {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .game-overlay-text {
+      margin: 0 0 12px;
+      font-size: 0.98rem;
+    }
+
+    .overlay-tile.vanish {
+      transition: transform 220ms ease, opacity 220ms ease;
+      will-change: transform, opacity;
+      z-index: 5;
+    }
+
+    .tile.hidden-during-fall {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .tile.hint-pulse {
+      animation: hintPulse 0.75s ease-in-out infinite;
+    }
+
+    @keyframes hintPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+      50% { transform: scale(1.07); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.75); }
+    }
+
+    @media (max-width: 620px) {
+      :root {
+        --tile-size: min(10vw, 46px);
+        --gap: 4px;
+      }
+      .app { padding: 14px; }
+      .board { padding: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="top">
+      <h1>매치3 퍼즐</h1>
+      <div class="score">
+        <span>점수: <strong id="score">0</strong></span>
+        <span class="timer">시간: <strong id="timer">01:00</strong></span>
+        <button id="resetBtn" type="button">새 게임</button>
+      </div>
+    </section>
+    <section class="board-wrap">
+      <div id="board" class="board" aria-label="match 3 board"></div>
+      <canvas id="fx" class="fx-layer"></canvas>
+    </section>
+    <p class="hint" id="hintText">인접한 타일을 드래그해서 스왑하세요.</p>
+  </main>
+  <canvas id="uiFx" class="ui-fx-layer"></canvas>
+  <section id="gameOverlay" class="game-overlay">
+    <div class="game-overlay-card">
+      <h2 id="overlayTitle" class="game-overlay-title">매치3 퍼즐</h2>
+      <p id="overlayText" class="game-overlay-text">Start를 눌러 1분 타임어택을 시작하세요.</p>
+      <button id="overlayBtn" type="button">Start</button>
+    </div>
+  </section>
+
+  <script>
+    const SIZE = 8;
+    const TYPES = 6;
+    const GAP_HOLD_MS = 180;
+    const VANISH_MS = 220;
+    const POST_VANISH_GAP_MS = 110;
+    const SWAP_ANIM_MS = 240;
+    const FALL_ANIM_PER_CELL_MS = 170;
+    const HINT_IDLE_MS = 5000;
+    const HINT_SHOW_MS = 1300;
+    const GAME_TIME_MS = 60000;
+    const DEBUG_TRACE = false;
+    const TRACE_MAX = 120;
+    const PARTICLE_COUNT = 12;
+    const colorSet = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00"];
+
+    const boardEl = document.getElementById("board");
+    const boardWrapEl = document.querySelector(".board-wrap");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+    const hintTextEl = document.getElementById("hintText");
+    const resetBtn = document.getElementById("resetBtn");
+    const gameOverlayEl = document.getElementById("gameOverlay");
+    const overlayTitleEl = document.getElementById("overlayTitle");
+    const overlayTextEl = document.getElementById("overlayText");
+    const overlayBtnEl = document.getElementById("overlayBtn");
+    const fxCanvas = document.getElementById("fx");
+    const fxCtx = fxCanvas.getContext("2d");
+    const uiFxCanvas = document.getElementById("uiFx");
+    const uiFxCtx = uiFxCanvas.getContext("2d");
+
+    let board = [];
+    let nextTileId = 1;
+    let score = 0;
+    let selected = null;
+    let busy = false;
+    let hiddenDuringFallCount = new Map();
+    let activeOverlays = new Set();
+    let effectQueue = [];
+    let effectPlaying = false;
+    let pendingCascadeKick = false;
+    let particles = [];
+    let fxRaf = null;
+    let uiFxItems = [];
+    let uiFxRaf = null;
+    let boardOffsetX = 0;
+    let boardOffsetY = 0;
+    let cascadeStreak = 0;
+    let hintPair = null;
+    let hintUntil = 0;
+    let lastClearAt = performance.now();
+    let hintIntervalId = null;
+    let gameStarted = false;
+    let gameOver = false;
+    let totalBonusSeconds = 0;
+    let gameEndAt = 0;
+    let timerIntervalId = null;
+    let traceEnabled = DEBUG_TRACE;
+    let traceEntries = [];
+    let traceSeq = 0;
+    let overlaySeq = 0;
+    let debugPanelEl = null;
+
+    function setHintText(text) {
+      hintTextEl.textContent = text;
+    }
+
+    function showStartOverlay() {
+      overlayTitleEl.textContent = "매치3 퍼즐";
+      overlayTextEl.textContent = "Start를 눌러 1분 타임어택을 시작하세요.";
+      overlayBtnEl.textContent = "Start";
+      gameOverlayEl.classList.add("show");
+    }
+
+    function showResultOverlay() {
+      overlayTitleEl.textContent = "Time Over";
+      overlayTextEl.textContent = `최종 점수 ${score}점 / 보너스 시간 +${totalBonusSeconds}초`;
+      overlayBtnEl.textContent = "Start";
+      gameOverlayEl.classList.add("show");
+    }
+
+    function hideOverlay() {
+      gameOverlayEl.classList.remove("show");
+    }
+
+    function idx(r, c) {
+      return r * SIZE + c;
+    }
+
+    function rc(index) {
+      return [Math.floor(index / SIZE), index % SIZE];
+    }
+
+    function isAdjacent(a, b) {
+      const [ar, ac] = rc(a);
+      const [br, bc] = rc(b);
+      return Math.abs(ar - br) + Math.abs(ac - bc) === 1;
+    }
+
+    function randomType() {
+      return Math.floor(Math.random() * TYPES);
+    }
+
+    function makeTileData(type) {
+      return { id: nextTileId++, type };
+    }
+
+    function snapshotState() {
+      return {
+        q: effectQueue.length,
+        playing: effectPlaying ? 1 : 0,
+        overlays: activeOverlays.size,
+        hidden: hiddenDuringFallCount.size,
+        busy: busy ? 1 : 0
+      };
+    }
+
+    function initDebugPanel() {
+      if (!traceEnabled || debugPanelEl) return;
+      debugPanelEl = document.createElement("pre");
+      debugPanelEl.className = "debug-panel";
+      debugPanelEl.textContent = "[trace ready] F2: toggle / F3: copy logs";
+      document.body.appendChild(debugPanelEl);
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "F2") {
+          traceEnabled = !traceEnabled;
+          if (debugPanelEl) {
+            debugPanelEl.style.display = traceEnabled ? "block" : "none";
+          }
+        } else if (e.key === "F3") {
+          const text = traceEntries.join("\n");
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(() => {
+            trace("debug:copied");
+          }).catch(() => {
+            window.prompt("로그 복사 (Ctrl+C, Enter)", text);
+          });
+        }
+      });
+    }
+
+    function trace(event, detail = "") {
+      if (!traceEnabled) return;
+      const t = performance.now().toFixed(1).padStart(7, " ");
+      const s = snapshotState();
+      const line = `${(++traceSeq).toString().padStart(4, "0")} @${t} ${event} | q=${s.q} p=${s.playing} o=${s.overlays} h=${s.hidden} b=${s.busy}${detail ? ` | ${detail}` : ""}`;
+      traceEntries.push(line);
+      if (traceEntries.length > TRACE_MAX) traceEntries.shift();
+      if (debugPanelEl) debugPanelEl.textContent = traceEntries.join("\n");
+      console.debug(line);
+    }
+
+    function formatTime(ms) {
+      const clamped = Math.max(0, ms);
+      const totalSec = Math.ceil(clamped / 1000);
+      const min = Math.floor(totalSec / 60);
+      const sec = totalSec % 60;
+      return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+    }
+
+    function updateTimerView() {
+      const remain = gameEndAt - performance.now();
+      timerEl.textContent = formatTime(remain);
+      if (remain <= 0 && !gameOver) {
+        gameOver = true;
+        gameStarted = false;
+        selected = null;
+        clearHint();
+        setHintText("시간 종료! 새 게임으로 다시 시작하세요.");
+        trace("time:up");
+        if (timerIntervalId !== null) {
+          clearInterval(timerIntervalId);
+          timerIntervalId = null;
+        }
+        renderBoard();
+        showResultOverlay();
+      }
+    }
+
+    function startGameTimer() {
+      if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+      }
+      gameStarted = true;
+      gameOver = false;
+      gameEndAt = performance.now() + GAME_TIME_MS;
+      setHintText("인접한 타일을 드래그해서 스왑하세요.");
+      updateTimerView();
+      timerIntervalId = setInterval(updateTimerView, 100);
+    }
+
+    function isTileHidden(id) {
+      return (hiddenDuringFallCount.get(id) || 0) > 0;
+    }
+
+    function addHiddenIds(ids) {
+      for (const id of ids) {
+        hiddenDuringFallCount.set(id, (hiddenDuringFallCount.get(id) || 0) + 1);
+      }
+    }
+
+    function removeHiddenIds(ids) {
+      for (const id of ids) {
+        const next = (hiddenDuringFallCount.get(id) || 0) - 1;
+        if (next <= 0) hiddenDuringFallCount.delete(id);
+        else hiddenDuringFallCount.set(id, next);
+      }
+    }
+
+    function createInitialBoard() {
+      board = new Array(SIZE * SIZE).fill(null);
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          let t = randomType();
+          while (
+            (c >= 2 && board[idx(r, c - 1)].type === t && board[idx(r, c - 2)].type === t) ||
+            (r >= 2 && board[idx(r - 1, c)].type === t && board[idx(r - 2, c)].type === t)
+          ) {
+            t = randomType();
+          }
+          board[idx(r, c)] = makeTileData(t);
+        }
+      }
+    }
+
+    function renderBoard(removedSet = null) {
+      const preservedOverlays = Array.from(
+        boardEl.querySelectorAll(":scope > .fall-overlay, :scope > .swap-overlay")
+      );
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < board.length; i++) {
+        const tileData = board[i];
+        if (!tileData) {
+          const empty = document.createElement("div");
+          empty.className = "cell-empty";
+          frag.appendChild(empty);
+          continue;
+        }
+        const tile = document.createElement("button");
+        tile.className = "tile";
+        tile.classList.add(`type-${tileData.type}`);
+        tile.type = "button";
+        tile.dataset.index = i;
+        tile.dataset.tileId = String(tileData.id);
+
+        const glyph = document.createElement("span");
+        glyph.className = `glyph shape-${tileData.type}`;
+        tile.appendChild(glyph);
+
+        if (selected === i) tile.classList.add("selected");
+        if (removedSet && removedSet.has(i)) tile.classList.add("removing");
+        if (isTileHidden(tileData.id)) tile.classList.add("hidden-during-fall");
+        if (hintPair && performance.now() < hintUntil && (i === hintPair[0] || i === hintPair[1])) {
+          tile.classList.add("hint-pulse");
+        }
+        tile.addEventListener("pointerdown", onTileDown);
+        tile.addEventListener("pointerenter", onTileEnter);
+        tile.addEventListener("click", onTileClick);
+        frag.appendChild(tile);
+      }
+      boardEl.replaceChildren(frag, ...preservedOverlays);
+      syncFxCanvas();
+      scoreEl.textContent = String(score);
+      if (traceEnabled && (effectPlaying || activeOverlays.size > 0 || busy)) {
+        trace("render");
+      }
+    }
+
+    function syncFxCanvas() {
+      const wrapRect = boardWrapEl.getBoundingClientRect();
+      const boardRect = boardEl.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+
+      fxCanvas.width = Math.max(1, Math.floor(wrapRect.width * ratio));
+      fxCanvas.height = Math.max(1, Math.floor(wrapRect.height * ratio));
+      fxCanvas.style.width = `${wrapRect.width}px`;
+      fxCanvas.style.height = `${wrapRect.height}px`;
+      fxCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      boardOffsetX = boardRect.left - wrapRect.left;
+      boardOffsetY = boardRect.top - wrapRect.top;
+    }
+
+    function syncUiFxCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      uiFxCanvas.width = Math.max(1, Math.floor(window.innerWidth * ratio));
+      uiFxCanvas.height = Math.max(1, Math.floor(window.innerHeight * ratio));
+      uiFxCanvas.style.width = `${window.innerWidth}px`;
+      uiFxCanvas.style.height = `${window.innerHeight}px`;
+      uiFxCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function spawnMatchParticles(matchSet, sourceBoard = board) {
+      for (const i of matchSet) {
+        const tile = boardEl.querySelector(`.tile[data-index="${i}"]`);
+        if (!tile) continue;
+
+        const sourceTile = sourceBoard[i];
+        if (!sourceTile) continue;
+        const type = sourceTile.type;
+        const tileRect = tile.getBoundingClientRect();
+        const wrapRect = boardWrapEl.getBoundingClientRect();
+        const cx = tileRect.left - wrapRect.left + tileRect.width / 2;
+        const cy = tileRect.top - wrapRect.top + tileRect.height / 2;
+
+        for (let p = 0; p < PARTICLE_COUNT; p++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 0.7 + Math.random() * 2.3;
+          particles.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 0.9,
+            life: 24 + Math.random() * 12,
+            age: 0,
+            size: 1.6 + Math.random() * 2.8,
+            color: colorSet[type]
+          });
+        }
+      }
+      startParticleLoop();
+    }
+
+    function startParticleLoop() {
+      if (fxRaf !== null) return;
+      let prev = performance.now();
+
+      function frame(now) {
+        const dt = Math.min(1.8, (now - prev) / 16.67);
+        prev = now;
+
+        fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        particles = particles.filter((p) => {
+          p.age += dt;
+          if (p.age >= p.life) return false;
+
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vy += 0.09 * dt;
+          p.vx *= 0.985;
+
+          const alpha = 1 - p.age / p.life;
+          fxCtx.globalAlpha = alpha;
+          fxCtx.fillStyle = p.color;
+          fxCtx.beginPath();
+          fxCtx.arc(boardOffsetX + p.x, boardOffsetY + p.y, p.size, 0, Math.PI * 2);
+          fxCtx.fill();
+          return true;
+        });
+
+        fxCtx.globalAlpha = 1;
+        if (particles.length > 0) {
+          fxRaf = requestAnimationFrame(frame);
+        } else {
+          fxRaf = null;
+          fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        }
+      }
+
+      fxRaf = requestAnimationFrame(frame);
+    }
+
+    function cubicBezierPoint(t, p0, p1, p2, p3) {
+      const it = 1 - t;
+      const x = it * it * it * p0.x + 3 * it * it * t * p1.x + 3 * it * t * t * p2.x + t * t * t * p3.x;
+      const y = it * it * it * p0.y + 3 * it * it * t * p1.y + 3 * it * t * t * p2.y + t * t * t * p3.y;
+      return { x, y };
+    }
+
+    function startUiFxLoop() {
+      if (uiFxRaf !== null) return;
+      let prev = performance.now();
+
+      function frame(now) {
+        const dt = Math.min(40, now - prev);
+        prev = now;
+        uiFxCtx.clearRect(0, 0, uiFxCanvas.width, uiFxCanvas.height);
+
+        uiFxItems = uiFxItems.filter((item) => {
+          item.age += dt;
+          if (item.age >= item.life) return false;
+
+          const t = item.age / item.life;
+          const eased = 1 - Math.pow(1 - t, 3);
+          if (item.kind === "orb") {
+            const p = cubicBezierPoint(eased, item.p0, item.p1, item.p2, item.p3);
+            const alpha = 1 - t * 0.9;
+            uiFxCtx.globalAlpha = alpha;
+            uiFxCtx.fillStyle = item.color;
+            uiFxCtx.beginPath();
+            uiFxCtx.arc(p.x, p.y, item.size * (1 - t * 0.35), 0, Math.PI * 2);
+            uiFxCtx.fill();
+          } else if (item.kind === "text") {
+            const p = cubicBezierPoint(eased, item.p0, item.p1, item.p2, item.p3);
+            uiFxCtx.globalAlpha = 1 - t;
+            uiFxCtx.fillStyle = "#ffe066";
+            uiFxCtx.font = "700 18px 'Trebuchet MS', 'Segoe UI', sans-serif";
+            uiFxCtx.fillText(item.text, p.x, p.y);
+          }
+          return true;
+        });
+
+        uiFxCtx.globalAlpha = 1;
+        if (uiFxItems.length > 0) {
+          uiFxRaf = requestAnimationFrame(frame);
+        } else {
+          uiFxRaf = null;
+          uiFxCtx.clearRect(0, 0, uiFxCanvas.width, uiFxCanvas.height);
+        }
+      }
+
+      uiFxRaf = requestAnimationFrame(frame);
+    }
+
+    function spawnTimeBonusFx(matchSet, bonusSec) {
+      if (!matchSet || matchSet.size === 0 || bonusSec <= 0) return;
+      const targetRect = timerEl.getBoundingClientRect();
+      const target = {
+        x: targetRect.left + targetRect.width / 2,
+        y: targetRect.top + targetRect.height / 2
+      };
+      const sources = [];
+      for (const i of matchSet) {
+        const tile = boardEl.querySelector(`.tile[data-index="${i}"]`);
+        if (!tile) continue;
+        const r = tile.getBoundingClientRect();
+        sources.push({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+      }
+      if (sources.length === 0) return;
+
+      for (const s of sources) {
+        const count = 5 + Math.floor(Math.random() * 3);
+        for (let n = 0; n < count; n++) {
+          const arc = (Math.random() - 0.5) * 70;
+          uiFxItems.push({
+            kind: "orb",
+            age: 0,
+            life: 1100 + Math.random() * 420,
+            size: 3.6 + Math.random() * 3.2,
+            color: "#ffe066",
+            p0: { x: s.x, y: s.y },
+            p1: { x: s.x + arc, y: s.y - 34 - Math.random() * 38 },
+            p2: { x: target.x + arc * 0.25, y: target.y - 28 - Math.random() * 22 },
+            p3: { x: target.x, y: target.y }
+          });
+        }
+      }
+
+      const avgX = sources.reduce((a, p) => a + p.x, 0) / sources.length;
+      const avgY = sources.reduce((a, p) => a + p.y, 0) / sources.length;
+      uiFxItems.push({
+        kind: "text",
+        text: `+${bonusSec}s`,
+        age: 0,
+        life: 1300,
+        p0: { x: avgX, y: avgY },
+        p1: { x: avgX, y: avgY - 24 },
+        p2: { x: target.x - 16, y: target.y - 26 },
+        p3: { x: target.x + 10, y: target.y - 8 }
+      });
+      startUiFxLoop();
+    }
+
+    function playCollapseOverlay(oldBoard, matches, moves, releaseIds = [], prevOverlay = null) {
+      const sampleTile = boardEl.querySelector(".tile, .cell-empty");
+      if (!sampleTile) return Promise.resolve([]);
+      const oid = ++overlaySeq;
+      trace("overlay:start", `id=${oid} m=${matches.size} mv=${moves.length}`);
+
+      const style = getComputedStyle(boardEl);
+      const gap = parseFloat(style.rowGap || style.gap || "0");
+      const padTop = parseFloat(style.paddingTop || "0");
+      const padLeft = parseFloat(style.paddingLeft || "0");
+      const sampleRect = sampleTile.getBoundingClientRect();
+      const stepX = sampleRect.width + gap;
+      const stepY = sampleRect.height + gap;
+
+      const moveById = new Map();
+      let maxCells = 1;
+      for (const move of moves) {
+        moveById.set(move.id, move);
+        const dist = Math.max(Math.abs(move.toRow - move.fromRow), Math.abs(move.toCol - move.fromCol));
+        if (dist > maxCells) maxCells = dist;
+      }
+      const hiddenIds = moves.map((m) => m.id);
+      addHiddenIds(hiddenIds);
+      if (releaseIds.length > 0) {
+        removeHiddenIds(releaseIds);
+      }
+
+      const overlay = document.createElement("div");
+      overlay.className = "fall-overlay";
+      overlay.dataset.overlayId = String(oid);
+
+      const vanishingGhosts = [];
+
+      function placeCell(el, r, c) {
+        el.style.width = `${sampleRect.width}px`;
+        el.style.height = `${sampleRect.height}px`;
+        el.style.left = `${padLeft + c * stepX}px`;
+        el.style.top = `${padTop + r * stepY}px`;
+      }
+
+      for (const i of matches) {
+        const [r, c] = rc(i);
+        const hole = document.createElement("div");
+        hole.className = "cell-empty overlay-hole";
+        placeCell(hole, r, c);
+        overlay.appendChild(hole);
+
+        const removedTile = oldBoard[i];
+        if (!removedTile) continue;
+        const vanish = document.createElement("div");
+        vanish.className = `tile overlay-tile vanish type-${removedTile.type}`;
+        const vanishGlyph = document.createElement("span");
+        vanishGlyph.className = `glyph shape-${removedTile.type}`;
+        vanish.appendChild(vanishGlyph);
+        placeCell(vanish, r, c);
+        overlay.appendChild(vanish);
+        vanishingGhosts.push(vanish);
+      }
+
+      const oldById = new Map();
+      for (let i = 0; i < oldBoard.length; i++) {
+        const t = oldBoard[i];
+        if (!t) continue;
+        const [r, c] = rc(i);
+        oldById.set(t.id, { tile: t, r, c });
+      }
+
+      const currentById = new Map();
+      for (const t of board) {
+        if (!t) continue;
+        currentById.set(t.id, t);
+      }
+
+      for (const move of moves) {
+        const oldPos = oldById.get(move.id);
+        const tileData = oldPos ? oldPos.tile : currentById.get(move.id);
+        if (!tileData) continue;
+        const ghost = document.createElement("div");
+        ghost.className = `tile overlay-tile type-${tileData.type}`;
+        ghost.dataset.tileId = String(tileData.id);
+        const glyph = document.createElement("span");
+        glyph.className = `glyph shape-${tileData.type}`;
+        ghost.appendChild(glyph);
+        placeCell(ghost, move.fromRow, move.fromCol);
+        overlay.appendChild(ghost);
+      }
+
+      boardEl.appendChild(overlay);
+      activeOverlays.add(overlay);
+      trace("overlay:append", `id=${oid}`);
+      if (prevOverlay && prevOverlay.isConnected) {
+        prevOverlay.remove();
+        activeOverlays.delete(prevOverlay);
+        trace("overlay:retire-prev", `id=${oid}`);
+      }
+      renderBoard();
+
+      const totalFallDuration = Math.max(FALL_ANIM_PER_CELL_MS, maxCells * FALL_ANIM_PER_CELL_MS);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          requestAnimationFrame(() => {
+            trace("overlay:vanish", `id=${oid}`);
+            for (const ghost of vanishingGhosts) {
+              ghost.style.opacity = "0";
+              ghost.style.transform = "scale(0.45)";
+            }
+          });
+
+          setTimeout(() => {
+            setTimeout(() => {
+              requestAnimationFrame(() => {
+                trace("overlay:fall", `id=${oid}`);
+                const moving = overlay.querySelectorAll(".overlay-tile[data-tile-id]");
+                for (const el of moving) {
+                  const move = moveById.get(Number(el.dataset.tileId));
+                  if (!move) continue;
+                  const dx = (move.toCol - move.fromCol) * stepX;
+                  const dy = (move.toRow - move.fromRow) * stepY;
+                  el.style.transition = `transform ${Math.max(FALL_ANIM_PER_CELL_MS, Math.max(Math.abs(move.toRow - move.fromRow), Math.abs(move.toCol - move.fromCol)) * FALL_ANIM_PER_CELL_MS)}ms linear`;
+                  el.style.transform = `translate(${dx}px, ${dy}px)`;
+                }
+                setTimeout(() => {
+                  trace("overlay:end", `id=${oid}`);
+                  resolve({ hiddenIds, overlay });
+                }, totalFallDuration + 20);
+              });
+            }, POST_VANISH_GAP_MS);
+          }, VANISH_MS);
+        }, GAP_HOLD_MS);
+      });
+    }
+
+    function findMatchesInBoard(targetBoard) {
+      const hit = new Set();
+
+      for (let r = 0; r < SIZE; r++) {
+        let runStart = 0;
+        for (let c = 1; c <= SIZE; c++) {
+          const prev = targetBoard[idx(r, c - 1)] ? targetBoard[idx(r, c - 1)].type : -1;
+          const curr = c < SIZE ? (targetBoard[idx(r, c)] ? targetBoard[idx(r, c)].type : -1) : -1;
+          if (curr !== prev) {
+            const runLen = c - runStart;
+            if (runLen >= 3) {
+              for (let k = runStart; k < c; k++) hit.add(idx(r, k));
+            }
+            runStart = c;
+          }
+        }
+      }
+
+      for (let c = 0; c < SIZE; c++) {
+        let runStart = 0;
+        for (let r = 1; r <= SIZE; r++) {
+          const prev = targetBoard[idx(r - 1, c)] ? targetBoard[idx(r - 1, c)].type : -1;
+          const curr = r < SIZE ? (targetBoard[idx(r, c)] ? targetBoard[idx(r, c)].type : -1) : -1;
+          if (curr !== prev) {
+            const runLen = r - runStart;
+            if (runLen >= 3) {
+              for (let k = runStart; k < r; k++) hit.add(idx(k, c));
+            }
+            runStart = r;
+          }
+        }
+      }
+      return hit;
+    }
+
+    function findMatches() {
+      return findMatchesInBoard(board);
+    }
+
+    function calcTimeBonusSeconds(matchSet, sourceBoard = board) {
+      if (!matchSet || matchSet.size === 0) return 0;
+      const inMatch = new Set(matchSet);
+      const visited = new Set();
+      let bonus = 0;
+
+      for (const start of inMatch) {
+        if (visited.has(start)) continue;
+        const base = sourceBoard[start];
+        if (!base) continue;
+        const type = base.type;
+        let size = 0;
+        const stack = [start];
+        visited.add(start);
+
+        while (stack.length > 0) {
+          const cur = stack.pop();
+          size++;
+          const [r, c] = rc(cur);
+          const neighbors = [
+            [r - 1, c],
+            [r + 1, c],
+            [r, c - 1],
+            [r, c + 1]
+          ];
+          for (const [nr, nc] of neighbors) {
+            if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
+            const ni = idx(nr, nc);
+            if (!inMatch.has(ni) || visited.has(ni)) continue;
+            const nTile = sourceBoard[ni];
+            if (!nTile || nTile.type !== type) continue;
+            visited.add(ni);
+            stack.push(ni);
+          }
+        }
+        if (size > 3) bonus += (size - 3);
+      }
+      return bonus;
+    }
+
+    function findHintMove(targetBoard = board) {
+      const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const a = idx(r, c);
+          for (const [dr, dc] of dirs) {
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
+            const b = idx(nr, nc);
+            const probe = targetBoard.slice();
+            [probe[a], probe[b]] = [probe[b], probe[a]];
+            if (findMatchesInBoard(probe).size > 0) return [a, b];
+          }
+        }
+      }
+      return null;
+    }
+
+    function ensurePlayableBoard() {
+      if (findHintMove(board)) return;
+      let attempts = 0;
+      do {
+        createInitialBoard();
+        attempts++;
+      } while (!findHintMove(board) && attempts < 60);
+      renderBoard();
+    }
+
+    function clearHint() {
+      hintPair = null;
+      hintUntil = 0;
+    }
+
+    function showHint() {
+      const move = findHintMove(board);
+      if (!move) return;
+      hintPair = move;
+      hintUntil = performance.now() + HINT_SHOW_MS;
+      renderBoard();
+    }
+
+    function startHintLoop() {
+      if (hintIntervalId !== null) return;
+      hintIntervalId = setInterval(() => {
+        if (!gameStarted || gameOver) return;
+        if (busy) return;
+        if (effectPlaying || effectQueue.length > 0) return;
+        if (activeOverlays.size > 0) return;
+        if (hintPair && hintUntil <= performance.now()) {
+          clearHint();
+          renderBoard();
+        }
+        if (!findHintMove(board)) {
+          clearHint();
+          ensurePlayableBoard();
+          lastClearAt = performance.now();
+          return;
+        }
+        if (performance.now() - lastClearAt < HINT_IDLE_MS) return;
+        if (hintUntil > performance.now()) return;
+        showHint();
+      }, 300);
+    }
+
+    function enqueueCascadeEffects(steps) {
+      if (!steps || steps.length === 0) return;
+      effectQueue.push(...steps);
+      trace("queue:enqueue", `+${steps.length}`);
+      if (!effectPlaying) {
+        void runEffectQueue();
+      }
+    }
+
+    function resolveOneCascadeStep() {
+      if (gameOver) {
+        trace("cascade:blocked-timeup");
+        return false;
+      }
+      const matches = findMatches();
+      if (matches.size === 0) {
+        cascadeStreak = 0;
+        trace("cascade:none");
+        return false;
+      }
+
+      cascadeStreak++;
+      clearHint();
+      lastClearAt = performance.now();
+      score += matches.size * 10 * cascadeStreak;
+      const bonusSec = calcTimeBonusSeconds(matches, board);
+      if (bonusSec > 0 && !gameOver) {
+        totalBonusSeconds += bonusSec;
+        spawnTimeBonusFx(matches, bonusSec);
+        gameEndAt += bonusSec * 1000;
+        updateTimerView();
+        trace("time:bonus", `+${bonusSec}s`);
+      }
+      trace("cascade:step", `streak=${cascadeStreak} m=${matches.size}`);
+
+      const oldBoard = board.slice();
+      spawnMatchParticles(matches, oldBoard);
+      for (const i of matches) board[i] = null;
+      const gapBoard = board.slice();
+      const { nextBoard, moves } = computeCollapse(gapBoard);
+      board = nextBoard;
+      enqueueCascadeEffects([{ oldBoard, matches, moves }]);
+      return true;
+    }
+
+    async function runEffectQueue() {
+      effectPlaying = true;
+      trace("queue:start");
+      let pendingUnhideIds = [];
+      let pendingOverlay = null;
+      while (effectQueue.length > 0) {
+        const step = effectQueue.shift();
+        trace("queue:dequeue", `left=${effectQueue.length}`);
+        const ended = await playCollapseOverlay(
+          step.oldBoard,
+          step.matches,
+          step.moves,
+          pendingUnhideIds,
+          pendingOverlay
+        );
+        pendingUnhideIds = ended.hiddenIds || [];
+        pendingOverlay = ended.overlay || null;
+        if (effectQueue.length === 0) {
+          let hasNext;
+          if (pendingCascadeKick) {
+            pendingCascadeKick = false;
+            trace("cascade:deferred-run");
+            hasNext = resolveOneCascadeStep();
+          } else {
+            hasNext = resolveOneCascadeStep();
+          }
+          if (!hasNext) break;
+        } else {
+          trace("queue:skip-autostep", `left=${effectQueue.length}`);
+        }
+      }
+      if (pendingOverlay && pendingOverlay.isConnected) {
+        pendingOverlay.remove();
+        activeOverlays.delete(pendingOverlay);
+      }
+      if (pendingUnhideIds.length > 0) {
+        removeHiddenIds(pendingUnhideIds);
+      }
+      effectPlaying = false;
+      cascadeStreak = 0;
+      if (pendingCascadeKick) {
+        pendingCascadeKick = false;
+        trace("cascade:deferred-run");
+        resolveOneCascadeStep();
+      }
+      renderBoard();
+      trace("queue:end");
+      if (!findHintMove(board)) {
+        clearHint();
+        ensurePlayableBoard();
+        lastClearAt = performance.now();
+      }
+    }
+
+    function swap(a, b) {
+      [board[a], board[b]] = [board[b], board[a]];
+    }
+
+    function computeCollapse(sourceBoard = board) {
+      const nextBoard = new Array(SIZE * SIZE).fill(null);
+      const moves = [];
+      for (let c = 0; c < SIZE; c++) {
+        let write = SIZE - 1;
+        for (let r = SIZE - 1; r >= 0; r--) {
+          const i = idx(r, c);
+          if (sourceBoard[i] !== null) {
+            const tileData = sourceBoard[i];
+            nextBoard[idx(write, c)] = tileData;
+            if (write !== r) {
+              moves.push({ id: tileData.id, fromRow: r, fromCol: c, toRow: write, toCol: c });
+            }
+            write--;
+          }
+        }
+        let spawnOffset = 0;
+        for (let r = write; r >= 0; r--) {
+          const newTile = makeTileData(randomType());
+          nextBoard[idx(r, c)] = newTile;
+          moves.push({ id: newTile.id, fromRow: -1 - spawnOffset, fromCol: c, toRow: r, toCol: c });
+          spawnOffset++;
+        }
+      }
+      return { nextBoard, moves };
+    }
+
+    function clearCascades() {
+      if (!gameStarted || gameOver) return;
+      if (effectPlaying || activeOverlays.size > 0) {
+        pendingCascadeKick = true;
+        trace("cascade:defer");
+        return;
+      }
+      trace("cascade:kick");
+      resolveOneCascadeStep();
+    }
+
+    function delay(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function relaxActiveOverlaysForInteraction() {
+      if (activeOverlays.size === 0) return;
+      for (const overlay of activeOverlays) {
+        const statics = overlay.querySelectorAll(".overlay-static");
+        for (const el of statics) el.remove();
+        overlay.dataset.relaxed = "1";
+      }
+      trace("overlay:relax");
+    }
+
+    function renderBoardIfStable(removedSet = null) {
+      renderBoard(removedSet);
+    }
+
+    function makeSwapGhost(tileData, left, top, width, height) {
+      const ghost = document.createElement("div");
+      ghost.className = `tile swap-ghost type-${tileData.type}`;
+      ghost.style.left = `${left}px`;
+      ghost.style.top = `${top}px`;
+      ghost.style.width = `${width}px`;
+      ghost.style.height = `${height}px`;
+      const glyph = document.createElement("span");
+      glyph.className = `glyph shape-${tileData.type}`;
+      ghost.appendChild(glyph);
+      return ghost;
+    }
+
+    function animateTileSwap(a, b) {
+      const tileA = boardEl.querySelector(`.tile[data-index="${a}"]`);
+      const tileB = boardEl.querySelector(`.tile[data-index="${b}"]`);
+      if (!tileA || !tileB) return Promise.resolve();
+      const dataA = board[a];
+      const dataB = board[b];
+      if (!dataA || !dataB) return Promise.resolve();
+
+      const boardRect = boardEl.getBoundingClientRect();
+      const rectA = tileA.getBoundingClientRect();
+      const rectB = tileB.getBoundingClientRect();
+      const dx = rectB.left - rectA.left;
+      const dy = rectB.top - rectA.top;
+
+      const overlay = document.createElement("div");
+      overlay.className = "swap-overlay";
+
+      const ghostA = makeSwapGhost(
+        dataA,
+        rectA.left - boardRect.left,
+        rectA.top - boardRect.top,
+        rectA.width,
+        rectA.height
+      );
+      const ghostB = makeSwapGhost(
+        dataB,
+        rectB.left - boardRect.left,
+        rectB.top - boardRect.top,
+        rectB.width,
+        rectB.height
+      );
+      ghostA.style.transition = `transform ${SWAP_ANIM_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+      ghostB.style.transition = `transform ${SWAP_ANIM_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+      overlay.appendChild(ghostA);
+      overlay.appendChild(ghostB);
+      boardEl.appendChild(overlay);
+      tileA.style.visibility = "hidden";
+      tileB.style.visibility = "hidden";
+
+      return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          ghostA.style.transform = `translate(${dx}px, ${dy}px)`;
+          ghostB.style.transform = `translate(${-dx}px, ${-dy}px)`;
+
+          setTimeout(() => {
+            tileA.style.visibility = "";
+            tileB.style.visibility = "";
+            if (overlay.isConnected) overlay.remove();
+            resolve();
+          }, SWAP_ANIM_MS);
+        });
+      });
+    }
+
+    async function trySwap(a, b) {
+      if (busy || gameOver || !gameStarted) return;
+      busy = true;
+      trace("swap:start", `${a}<->${b}`);
+      if (effectPlaying || activeOverlays.size > 0) {
+        relaxActiveOverlaysForInteraction();
+      }
+      selected = null;
+      clearHint();
+      await animateTileSwap(a, b);
+      swap(a, b);
+      renderBoardIfStable();
+
+      const matches = findMatches();
+      if (matches.size === 0) {
+        trace("swap:revert");
+        await delay(40);
+        await animateTileSwap(a, b);
+        swap(a, b);
+        renderBoardIfStable();
+      } else {
+        trace("swap:match", `m=${matches.size}`);
+        clearCascades();
+      }
+      if (!findHintMove(board) && activeOverlays.size === 0 && !effectPlaying && effectQueue.length === 0) {
+        clearHint();
+        ensurePlayableBoard();
+        lastClearAt = performance.now();
+      }
+      busy = false;
+      trace("swap:end");
+    }
+
+    function onTileDown(e) {
+      if (busy || gameOver || !gameStarted) return;
+      selected = Number(e.currentTarget.dataset.index);
+      clearHint();
+      if (!effectPlaying && activeOverlays.size === 0) renderBoard();
+    }
+
+    function onTileEnter(e) {
+      if (busy || gameOver || !gameStarted || selected === null || (e.buttons & 1) === 0) return;
+      const next = Number(e.currentTarget.dataset.index);
+      if (selected === next) return;
+      if (isAdjacent(selected, next)) {
+        const from = selected;
+        selected = null;
+        trySwap(from, next);
+      }
+    }
+
+    function onTileClick(e) {
+      if (busy || gameOver || !gameStarted) return;
+      const current = Number(e.currentTarget.dataset.index);
+      if (selected === null) {
+        selected = current;
+        if (!effectPlaying && activeOverlays.size === 0) renderBoard();
+        return;
+      }
+      if (selected === current) {
+        selected = null;
+        if (!effectPlaying && activeOverlays.size === 0) renderBoard();
+        return;
+      }
+      if (isAdjacent(selected, current)) {
+        const from = selected;
+        selected = null;
+        trySwap(from, current);
+      } else {
+        selected = current;
+        if (!effectPlaying && activeOverlays.size === 0) renderBoard();
+      }
+    }
+
+    function resetGame() {
+      trace("reset:start");
+      score = 0;
+      selected = null;
+      busy = false;
+      gameStarted = false;
+      clearHint();
+      hiddenDuringFallCount = new Map();
+      nextTileId = 1;
+      effectQueue = [];
+      effectPlaying = false;
+      pendingCascadeKick = false;
+      gameOver = false;
+      totalBonusSeconds = 0;
+      gameEndAt = performance.now() + GAME_TIME_MS;
+      if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+      for (const overlay of activeOverlays) {
+        if (overlay.isConnected) overlay.remove();
+      }
+      activeOverlays = new Set();
+      particles = [];
+      uiFxItems = [];
+      if (fxRaf !== null) {
+        cancelAnimationFrame(fxRaf);
+        fxRaf = null;
+      }
+      if (uiFxRaf !== null) {
+        cancelAnimationFrame(uiFxRaf);
+        uiFxRaf = null;
+      }
+      fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+      uiFxCtx.clearRect(0, 0, uiFxCanvas.width, uiFxCanvas.height);
+      createInitialBoard();
+      ensurePlayableBoard();
+      lastClearAt = performance.now();
+      timerEl.textContent = "01:00";
+      setHintText("Start를 눌러 게임을 시작하세요.");
+      showStartOverlay();
+      renderBoard();
+      trace("reset:end");
+    }
+
+    overlayBtnEl.addEventListener("click", () => {
+      if (gameOver) {
+        resetGame();
+      }
+      if (!gameStarted) {
+        hideOverlay();
+        startGameTimer();
+      }
+    });
+
+    resetBtn.addEventListener("click", resetGame);
+    window.addEventListener("resize", () => {
+      syncFxCanvas();
+      syncUiFxCanvas();
+    });
+    initDebugPanel();
+    startHintLoop();
+    syncUiFxCanvas();
+    resetGame();
+  </script>
+</body>
+</html>
+

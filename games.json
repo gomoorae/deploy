@@ -1,9 +1,9 @@
 ﻿[
   {
-    "title": "Tetris",
-    "description": "블록을 쌓아 라인을 지우는 클래식 게임",
-    "thumbnail": "thumbs/tetris_v2.svg",
-    "url": "games/tetris/index.html"
+    "title": "매치3 퍼즐",
+    "description": "같은 블록을 3개 이상 맞춰 터뜨리는 퍼즐 게임",
+    "thumbnail": "thumbs/match3_puzzle_v1.svg",
+    "url": "games/match3_puzzle/index.html"
   },
   {
     "title": "Brick Breaker",
@@ -18,4 +18,5 @@
     "url": "games/bike_game/index.html"
   }
 ]
+
 

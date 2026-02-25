@@ -9,11 +9,11 @@ app.js
 styles.css
 games.json
 games/
-  tetris/index.html
+  match3_puzzle/index.html
   brick_breaker/index.html
   bike_game/index.html
 thumbs/
-  tetris_v2.svg
+  match3_puzzle_v1.svg
   brick_breaker_v2.svg
   bike_game_v1.svg
 ```
@@ -52,3 +52,5 @@ python -m http.server 5500
   "url": "games/my_new_game/index.html"
 }
 ```
+
+
